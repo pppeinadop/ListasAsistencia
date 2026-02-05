@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ListasAsistencia — Bienvenido</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="logo">ListasAsistencia</h1>
+      <nav>
+        <a href="#about">Acerca</a>
+        <a href="#features">Funcionalidades</a>
+        <a href="#get-started" class="cta">Comenzar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h2>Bienvenido a ListasAsistencia</h2>
+        <p class="lead">Gestiona listas de asistencia rápida y fácilmente. Crea, comparte y exporta listas con un solo clic.</p>
+        <div class="buttons">
+          <a href="#" class="btn primary">Ir a la app</a>
+          <a href="#" class="btn secondary">Ver documentación</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="container info">
+      <h3>¿Qué es ListasAsistencia?</h3>
+      <p>Es una herramienta para crear y administrar listas de asistencia para clases, reuniones o eventos. Diseñada para ser simple, rápida y accesible desde cualquier dispositivo.</p>
+    </section>
+
+    <section id="features" class="container features">
+      <article>
+        <h4>Rápido</h4>
+        <p>Interfaz ligera y enfocada en la velocidad.</p>
+      </article>
+      <article>
+        <h4>Exportable</h4>
+        <p>Exporta las listas a CSV o PDF.</p>
+      </article>
+      <article>
+        <h4>Compartible</h4>
+        <p>Comparte enlaces para que otros accedan a las listas.</p>
+      </article>
+    </section>
+
+    <section id="get-started" class="container get-started">
+      <h3>¿Listo para empezar?</h3>
+      <ol>
+        <li>Clona el repositorio.</li>
+        <li>Abre index.html en tu navegador o publica con GitHub Pages.</li>
+        <li>Integra con tu backend si necesitas guardar datos.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <span id="year"></span> ListasAsistencia — Hecho con ♥</p>
+    </div>
+  </footer>
+
+  <script>
+    // año dinámico
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
