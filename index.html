@@ -18,6 +18,7 @@
             --bg: #F2F2F7;
             --card-bg: #FFFFFF;
             --text: #1C1C1E;
+            --secondary: #8E8E93;
         }
 
         * { box-sizing: border-box; }
@@ -30,24 +31,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
             padding: 20px;
         }
 
-        /* Contenedor de pantallas */
-        .screen { display: none; width: 100%; max-width: 500px; text-align: center; }
+        .screen { display: none; width: 100%; max-width: 500px; }
         .active { display: block; }
 
-        .main-header { margin-bottom: 40px; }
-        .main-header h1 { font-size: 28px; font-weight: 800; margin: 0; }
+        .main-header { text-align: center; margin-bottom: 30px; margin-top: 20px; }
+        .main-header h1 { font-size: 26px; font-weight: 800; margin: 0; }
 
-        .menu-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
+        /* Botones Menú Principal */
+        .menu-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .menu-button {
             aspect-ratio: 1 / 1;
             background: var(--card-bg);
@@ -61,14 +56,39 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-
         .menu-button:active { transform: scale(0.95); }
-        .menu-button .icon { font-size: 48px; margin-bottom: 10px; }
-        .menu-button span { font-size: 18px; font-weight: 600; color: var(--primary); }
+        .menu-button .icon { font-size: 40px; margin-bottom: 10px; }
+        .menu-button span { font-size: 16px; font-weight: 600; color: var(--primary); }
 
-        /* Estilo para las sub-pantallas */
-        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .back-btn { margin-top: 20px; background: #8E8E93; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+        /* Formularios y Cards */
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; color: var(--secondary); }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #DDD;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #F9F9F9;
+        }
+
+        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+
+        /* Lista de Escuelas */
+        .escuela-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            border-bottom: 1px solid #EEE;
+        }
+        .escuela-item:last-child { border-bottom: none; }
+        .logo-preview { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; background: #EEE; }
+        .escuela-info { text-align: left; flex: 1; }
+        .escuela-info strong { display: block; font-size: 16px; }
+        .escuela-info span { font-size: 13px; color: var(--secondary); }
     </style>
 </head>
 <body>
@@ -77,13 +97,11 @@
         <header class="main-header">
             <h1>Asistencia - Dr. Peinado</h1>
         </header>
-
         <div class="menu-container">
             <button class="menu-button" onclick="navegar('escuelas')">
                 <span class="icon">🏫</span>
                 <span>Escuelas</span>
             </button>
-
             <button class="menu-button" onclick="navegar('grupos')">
                 <span class="icon">👥</span>
                 <span>Grupos</span>
@@ -92,28 +110,111 @@
     </div>
 
     <div id="escuelas" class="screen">
+        <button class="back-btn" onclick="navegar('home')"> ❮ Volver</button>
+        
         <div class="card">
-            <h2>Gestión de Escuelas</h2>
-            <p>Aquí aparecerá tu lista de escuelas.</p>
-            <button class="back-btn" onclick="navegar('home')">Volver</button>
+            <h3>Nueva Escuela</h3>
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="nombreEscuela" placeholder="Ej. Universidad Autónoma">
+            </div>
+            <div class="form-group">
+                <label>Apodo / Siglas</label>
+                <input type="text" id="apodoEscuela" placeholder="Ej. UACH">
+            </div>
+            <div class="form-group">
+                <label>Logo de la Escuela</label>
+                <input type="file" id="logoEscuela" accept="image/*">
+            </div>
+            <button class="btn-save" onclick="guardarEscuela()">Guardar Escuela</button>
+        </div>
+
+        <div class="card">
+            <h3>Mis Escuelas</h3>
+            <div id="listaEscuelas"></div>
         </div>
     </div>
 
     <div id="grupos" class="screen">
+        <button class="back-btn" onclick="navegar('home')"> ❮ Volver</button>
         <div class="card">
             <h2>Gestión de Grupos</h2>
-            <p>Aquí aparecerá tu lista de grupos.</p>
-            <button class="back-btn" onclick="navegar('home')">Volver</button>
+            <p>Próximamente...</p>
         </div>
     </div>
 
     <script>
+        // Cargar datos de localStorage
+        let db_escuelas = JSON.parse(localStorage.getItem('db_escuelas')) || [];
+
         function navegar(idPantalla) {
-            // Ocultar todas las pantallas
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            // Mostrar la pantalla seleccionada
             document.getElementById(idPantalla).classList.add('active');
+            if(idPantalla === 'escuelas') renderEscuelas();
         }
+
+        function guardarEscuela() {
+            const nombre = document.getElementById('nombreEscuela').value;
+            const apodo = document.getElementById('apodoEscuela').value;
+            const logoFile = document.getElementById('logoEscuela').files[0];
+
+            if (!nombre || !apodo) {
+                alert("Por favor rellena los campos de texto");
+                return;
+            }
+
+            if (logoFile) {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64String = reader.result;
+                    crearObjetoEscuela(nombre, apodo, base64String);
+                }
+                reader.readAsDataURL(logoFile);
+            } else {
+                crearObjetoEscuela(nombre, apodo, null);
+            }
+        }
+
+        function crearObjetoEscuela(nombre, apodo, logo) {
+            const nuevaEscuela = {
+                id: Date.now(),
+                nombre: nombre,
+                apodo: apodo,
+                logo: logo
+            };
+
+            db_escuelas.push(nuevaEscuela);
+            localStorage.setItem('db_escuelas', JSON.stringify(db_escuelas));
+            
+            // Limpiar formulario
+            document.getElementById('nombreEscuela').value = "";
+            document.getElementById('apodoEscuela').value = "";
+            document.getElementById('logoEscuela').value = "";
+            
+            renderEscuelas();
+            alert("Escuela guardada con éxito");
+        }
+
+        function renderEscuelas() {
+            const contenedor = document.getElementById('listaEscuelas');
+            if (db_escuelas.length === 0) {
+                contenedor.innerHTML = '<p style="color:#888; font-size:14px;">No hay escuelas registradas.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = db_escuelas.map(esc => `
+                <div class="escuela-item">
+                    <img src="${esc.logo || 'https://via.placeholder.com/50'}" class="logo-preview">
+                    <div class="escuela-info">
+                        <strong>${esc.apodo}</strong>
+                        <span>${esc.nombre}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Cargar lista inicial
+        renderEscuelas();
     </script>
 
 </body>
