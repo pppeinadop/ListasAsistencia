@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="icono.png">
     <link rel="icon" type="image/png" href="icono.png">
 
-    <title>Control de Asistencia Universal</title>
+    <title>Asistencia - Dr. Peinado</title>
     
     <style>
         :root {
@@ -36,10 +36,25 @@
 
         .app-container {
             width: 100%;
-            max-width: 600px; /* Se ve bien en PC y no se estira de más */
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             gap: 20px;
+        }
+
+        /* Estilo para el nuevo encabezado centrado */
+        .main-header {
+            text-align: center;
+            padding: 10px 0;
+            margin-bottom: 10px;
+        }
+
+        .main-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text);
+            letter-spacing: -0.5px;
         }
 
         .card {
@@ -63,8 +78,6 @@
             outline: none;
         }
 
-        input:focus { border-color: var(--primary); }
-
         button {
             padding: 12px 20px;
             border: none;
@@ -73,10 +86,7 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
-
-        button:active { opacity: 0.7; }
 
         .list-header {
             display: flex;
@@ -93,8 +103,6 @@
             border-bottom: 1px solid #F2F2F7;
         }
 
-        .alumno-row:last-child { border-bottom: none; }
-
         .status-btn {
             width: 100px;
             font-size: 14px;
@@ -105,22 +113,26 @@
             background: var(--success);
         }
 
-        .empty-state {
-            text-align: center;
-            color: #8E8E93;
-            padding: 20px;
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        .clear-btn {
+        .secondary-btn {
             background: #8E8E93;
-            font-size: 12px;
-            padding: 5px 10px;
+            flex: 1;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        <header class="main-header">
+            <h1>Asistencia - Dr. Peinado</h1>
+        </header>
+
         <div class="card">
             <h2>Registrar Alumno</h2>
             <div class="input-group">
@@ -132,10 +144,13 @@
         <div class="card">
             <div class="list-header">
                 <h2>Lista de Clase</h2>
-                <button class="clear-btn" onclick="borrarTodo()">Borrar Todo</button>
             </div>
-            <div id="listaContenedor">
-                </div>
+            <div id="listaContenedor"></div>
+            
+            <div class="actions">
+                <button class="secondary-btn" onclick="descargarLista()">Descargar TXT</button>
+                <button class="secondary-btn" style="background:#FF9500" onclick="borrarTodo()">Borrar Todo</button>
+            </div>
         </div>
     </div>
 
@@ -145,12 +160,7 @@
         function agregar() {
             const input = document.getElementById('nombreAlumno');
             if (input.value.trim() === "") return;
-            
-            alumnos.push({
-                nombre: input.value.trim(),
-                presente: false
-            });
-            
+            alumnos.push({ nombre: input.value.trim(), presente: false });
             input.value = "";
             actualizar();
         }
@@ -167,15 +177,27 @@
             }
         }
 
+        function descargarLista() {
+            let contenido = "LISTA DE ASISTENCIA - DR. PEINADO\n";
+            contenido += "Fecha: " + new Date().toLocaleDateString() + "\n\n";
+            alumnos.forEach(a => {
+                contenido += `${a.presente ? '[✓] PRESENTE' : '[ ] AUSENTE '} - ${a.nombre}\n`;
+            });
+            const blob = new Blob([contenido], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'asistencia_dr_peinado.txt';
+            a.click();
+        }
+
         function actualizar() {
             localStorage.setItem('asistencia_v1', JSON.stringify(alumnos));
             const contenedor = document.getElementById('listaContenedor');
-            
             if (alumnos.length === 0) {
-                contenedor.innerHTML = '<div class="empty-state">No hay alumnos en la lista</div>';
+                contenedor.innerHTML = '<p style="text-align:center;color:#888">No hay alumnos registrados</p>';
                 return;
             }
-
             contenedor.innerHTML = "";
             alumnos.forEach((alumno, i) => {
                 contenedor.innerHTML += `
@@ -188,8 +210,6 @@
                 `;
             });
         }
-
-        // Iniciar la lista al cargar
         actualizar();
     </script>
 </body>
