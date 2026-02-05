@@ -15,8 +15,6 @@
     <style>
         :root {
             --primary: #007AFF;
-            --success: #34C759;
-            --danger: #FF3B30;
             --bg: #F2F2F7;
             --card-bg: #FFFFFF;
             --text: #1C1C1E;
@@ -30,187 +28,93 @@
             color: var(--text);
             margin: 0;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            min-height: 100vh;
             padding: 20px;
         }
 
-        .app-container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
+        /* Contenedor de pantallas */
+        .screen { display: none; width: 100%; max-width: 500px; text-align: center; }
+        .active { display: block; }
+
+        .main-header { margin-bottom: 40px; }
+        .main-header h1 { font-size: 28px; font-weight: 800; margin: 0; }
+
+        .menu-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
 
-        /* Estilo para el nuevo encabezado centrado */
-        .main-header {
-            text-align: center;
-            padding: 10px 0;
-            margin-bottom: 10px;
-        }
-
-        .main-header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            margin: 0;
-            color: var(--text);
-            letter-spacing: -0.5px;
-        }
-
-        .card {
+        .menu-button {
+            aspect-ratio: 1 / 1;
             background: var(--card-bg);
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #DDD;
-            border-radius: 10px;
-            font-size: 16px;
-            outline: none;
-        }
-
-        button {
-            padding: 12px 20px;
             border: none;
-            border-radius: 10px;
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            transition: transform 0.2s;
         }
 
-        .list-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+        .menu-button:active { transform: scale(0.95); }
+        .menu-button .icon { font-size: 48px; margin-bottom: 10px; }
+        .menu-button span { font-size: 18px; font-weight: 600; color: var(--primary); }
 
-        .alumno-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #F2F2F7;
-        }
-
-        .status-btn {
-            width: 100px;
-            font-size: 14px;
-            background: var(--danger);
-        }
-
-        .status-btn.presente {
-            background: var(--success);
-        }
-
-        .actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .secondary-btn {
-            background: #8E8E93;
-            flex: 1;
-            font-size: 13px;
-        }
+        /* Estilo para las sub-pantallas */
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .back-btn { margin-top: 20px; background: #8E8E93; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div id="home" class="screen active">
         <header class="main-header">
             <h1>Asistencia - Dr. Peinado</h1>
         </header>
 
-        <div class="card">
-            <h2>Registrar Alumno</h2>
-            <div class="input-group">
-                <input type="text" id="nombreAlumno" placeholder="Escribe nombre..." onkeypress="if(event.key==='Enter') agregar()">
-                <button onclick="agregar()">Añadir</button>
-            </div>
-        </div>
+        <div class="menu-container">
+            <button class="menu-button" onclick="navegar('escuelas')">
+                <span class="icon">🏫</span>
+                <span>Escuelas</span>
+            </button>
 
+            <button class="menu-button" onclick="navegar('grupos')">
+                <span class="icon">👥</span>
+                <span>Grupos</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="escuelas" class="screen">
         <div class="card">
-            <div class="list-header">
-                <h2>Lista de Clase</h2>
-            </div>
-            <div id="listaContenedor"></div>
-            
-            <div class="actions">
-                <button class="secondary-btn" onclick="descargarLista()">Descargar TXT</button>
-                <button class="secondary-btn" style="background:#FF9500" onclick="borrarTodo()">Borrar Todo</button>
-            </div>
+            <h2>Gestión de Escuelas</h2>
+            <p>Aquí aparecerá tu lista de escuelas.</p>
+            <button class="back-btn" onclick="navegar('home')">Volver</button>
+        </div>
+    </div>
+
+    <div id="grupos" class="screen">
+        <div class="card">
+            <h2>Gestión de Grupos</h2>
+            <p>Aquí aparecerá tu lista de grupos.</p>
+            <button class="back-btn" onclick="navegar('home')">Volver</button>
         </div>
     </div>
 
     <script>
-        let alumnos = JSON.parse(localStorage.getItem('asistencia_v1')) || [];
-
-        function agregar() {
-            const input = document.getElementById('nombreAlumno');
-            if (input.value.trim() === "") return;
-            alumnos.push({ nombre: input.value.trim(), presente: false });
-            input.value = "";
-            actualizar();
+        function navegar(idPantalla) {
+            // Ocultar todas las pantallas
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            // Mostrar la pantalla seleccionada
+            document.getElementById(idPantalla).classList.add('active');
         }
-
-        function toggle(index) {
-            alumnos[index].presente = !alumnos[index].presente;
-            actualizar();
-        }
-
-        function borrarTodo() {
-            if(confirm("¿Seguro que quieres borrar toda la lista?")) {
-                alumnos = [];
-                actualizar();
-            }
-        }
-
-        function descargarLista() {
-            let contenido = "LISTA DE ASISTENCIA - DR. PEINADO\n";
-            contenido += "Fecha: " + new Date().toLocaleDateString() + "\n\n";
-            alumnos.forEach(a => {
-                contenido += `${a.presente ? '[✓] PRESENTE' : '[ ] AUSENTE '} - ${a.nombre}\n`;
-            });
-            const blob = new Blob([contenido], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'asistencia_dr_peinado.txt';
-            a.click();
-        }
-
-        function actualizar() {
-            localStorage.setItem('asistencia_v1', JSON.stringify(alumnos));
-            const contenedor = document.getElementById('listaContenedor');
-            if (alumnos.length === 0) {
-                contenedor.innerHTML = '<p style="text-align:center;color:#888">No hay alumnos registrados</p>';
-                return;
-            }
-            contenedor.innerHTML = "";
-            alumnos.forEach((alumno, i) => {
-                contenedor.innerHTML += `
-                    <div class="alumno-row">
-                        <span>${alumno.nombre}</span>
-                        <button class="status-btn ${alumno.presente ? 'presente' : ''}" onclick="toggle(${i})">
-                            ${alumno.presente ? 'Presente ✓' : 'Ausente ✗'}
-                        </button>
-                    </div>
-                `;
-            });
-        }
-        actualizar();
     </script>
+
 </body>
 </html>
