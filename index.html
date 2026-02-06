@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
-        :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --success: #34C759; --danger: #FF3B30; --warning: #FF9500; }
+        :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --success: #34C759; --danger: #FF3B30; }
         * { box-sizing: border-box; }
         body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
@@ -25,31 +25,31 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; color: var(--secondary); }
         
-        input, select { width: 100%; padding: 12px; border: 1px solid #DDD; border-radius: 12px; font-size: 16px; outline: none; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #DDD; border-radius: 12px; font-size: 16px; outline: none; background: white; }
         
         .btn { width: 100%; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; color: white; transition: 0.2s; }
         .btn-primary { background: var(--primary); }
         .btn-success { background: var(--success); }
-        .btn-ghost { background: none; color: var(--primary); }
+        .btn-ghost { background: none; color: var(--primary); font-size: 16px; font-weight: bold; }
 
-        .item-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #F2F2F7; border-radius: 10px; }
-        .item-row:hover { background: #F9F9F9; }
+        .item-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #F2F2F7; }
         .info { flex: 1; }
+        .info strong { display: block; font-size: 16px; }
+        .info small { color: var(--secondary); }
         
-        .actions { display: flex; gap: 5px; }
-        .icon-btn { cursor: pointer; padding: 8px; border-radius: 8px; font-size: 16px; transition: 0.2s; background: #f0f0f0; }
-        .icon-btn:hover { background: #e0e0e0; }
-
-        .import-input { display: none; }
+        .actions { display: flex; gap: 8px; }
+        .icon-btn { cursor: pointer; font-size: 18px; padding: 5px; }
+        
+        .logo-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #eee; }
     </style>
 </head>
 <body>
 
     <div id="home" class="screen active">
-        <h1 style="text-align:center">Dr. Peinado</h1>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <button class="card" style="border:none; cursor:pointer" onclick="navegar('escuelas')">🏫<br>Escuelas</button>
-            <button class="card" style="border:none; cursor:pointer" onclick="navegar('grupos')">👥<br>Grupos</button>
+        <h1 style="text-align:center; margin-top:40px;">Dr. Peinado</h1>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; width:100%;">
+            <button class="card" style="border:none; cursor:pointer" onclick="navegar('escuelas')">🏫<br><b>Escuelas</b></button>
+            <button class="card" style="border:none; cursor:pointer" onclick="navegar('grupos')">👥<br><b>Grupos</b></button>
         </div>
     </div>
 
@@ -58,11 +58,14 @@
         <div class="card">
             <h3 id="tituloEscuela">Nueva Escuela</h3>
             <input type="hidden" id="keyEscuela">
-            <input type="text" id="nomEsc" placeholder="Nombre Completo" style="margin-bottom:10px">
-            <input type="text" id="apiEsc" placeholder="Siglas (UACH, etc)">
-            <button class="btn btn-primary" onclick="guardarEscuela()">Guardar</button>
+            <input type="text" id="nomEsc" placeholder="Nombre (Ej. CBTis 128)" style="margin-bottom:10px">
+            <input type="text" id="apiEsc" placeholder="Apodo/Siglas">
+            <button class="btn btn-primary" onclick="guardarEscuela()">Guardar Escuela</button>
         </div>
-        <div class="card" id="listaEscuelas"></div>
+        <div class="card">
+            <h3>Registradas</h3>
+            <div id="listaEscuelas"></div>
+        </div>
     </div>
 
     <div id="grupos" class="screen">
@@ -72,20 +75,19 @@
             <input type="hidden" id="keyGrupo">
             <div class="form-group">
                 <label>Escuela</label>
-                <select id="selEscuela"><option value="">Cargando...</option></select>
+                <select id="selEscuela"><option value="">Cargando escuelas...</option></select>
             </div>
             <div class="form-group">
                 <label>Nombre del Grupo</label>
-                <input type="text" id="nomGrupo" placeholder="Ej. 2do A - Anatomía">
+                <input type="text" id="nomGrupo" placeholder="Ej. 6to M - Programación">
             </div>
-            <button class="btn btn-success" id="btnGrup" onclick="guardarGrupo()">Crear Grupo</button>
-            <button id="btnCancG" style="display:none; color:red; background:none; border:none; width:100%; margin-top:10px" onclick="resetGrupo()">Cancelar</button>
+            <button class="btn btn-success" id="btnGrup" onclick="guardarGrupo()">Guardar Grupo</button>
         </div>
         
-        <input type="file" id="fileImport" class="import-input" accept=".xlsx, .xls" onchange="procesarExcel(event)">
+        <input type="file" id="fileImport" style="display:none" accept=".xlsx, .xls" onchange="procesarExcel(event)">
         
         <div class="card">
-            <h3>Mis Grupos</h3>
+            <h3>Grupos Actuales</h3>
             <div id="listaGrupos"></div>
         </div>
     </div>
@@ -103,55 +105,50 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let grupoSeleccionadoParaImportar = null;
+        let grupoIDImportar = null;
 
         function navegar(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
-        // --- GRUPOS ---
+        // --- LÓGICA DE ESCUELAS ---
+        function guardarEscuela() {
+            const nombre = document.getElementById('nomEsc').value;
+            const apodo = document.getElementById('apiEsc').value;
+            if(!nombre || !apodo) return alert("Llena los campos");
+            
+            db.ref('escuelas').push({ nombre, apodo }).then(() => {
+                document.getElementById('nomEsc').value = "";
+                document.getElementById('apiEsc').value = "";
+                alert("Escuela guardada");
+            });
+        }
+
+        function eliminarEscuela(key) {
+            if(confirm("¿Eliminar escuela?")) db.ref('escuelas/' + key).remove();
+        }
+
+        // --- LÓGICA DE GRUPOS ---
         function guardarGrupo() {
             const escId = document.getElementById('selEscuela').value;
             const escTxt = document.getElementById('selEscuela').options[document.getElementById('selEscuela').selectedIndex].text;
             const nomG = document.getElementById('nomGrupo').value;
-            const key = document.getElementById('keyGrupo').value;
+            
+            if(!escId || !nomG) return alert("Selecciona escuela y escribe nombre del grupo");
 
-            if(!escId || !nomG) return alert("Completa los datos");
-
-            const data = { escId, escTxt, nomGrupo: nomG };
-            if(key) {
-                db.ref('grupos/' + key).update(data).then(() => { alert("Grupo actualizado"); resetGrupo(); });
-            } else {
-                db.ref('grupos').push(data).then(() => { alert("Grupo creado"); resetGrupo(); });
-            }
-        }
-
-        function resetGrupo() {
-            document.getElementById('keyGrupo').value = "";
-            document.getElementById('nomGrupo').value = "";
-            document.getElementById('tituloGrupo').innerText = "Nuevo Grupo";
-            document.getElementById('btnGrup').innerText = "Crear Grupo";
-            document.getElementById('btnCancG').style.display = "none";
-        }
-
-        function editarGrupo(key, idEsc, nombre) {
-            document.getElementById('keyGrupo').value = key;
-            document.getElementById('selEscuela').value = idEsc;
-            document.getElementById('nomGrupo').value = nombre;
-            document.getElementById('tituloGrupo').innerText = "Editando Grupo";
-            document.getElementById('btnGrup').innerText = "Actualizar";
-            document.getElementById('btnCancG').style.display = "block";
-            window.scrollTo(0,0);
+            db.ref('grupos').push({ escId, escTxt, nombreGrupo: nomG }).then(() => {
+                document.getElementById('nomGrupo').value = "";
+                alert("Grupo creado");
+            });
         }
 
         function eliminarGrupo(key) {
-            if(confirm("¿Eliminar grupo y sus alumnos?")) db.ref('grupos/' + key).remove();
+            if(confirm("¿Eliminar grupo?")) db.ref('grupos/' + key).remove();
         }
 
-        // --- IMPORTAR EXCEL ---
         function dispararImportar(key) {
-            grupoSeleccionadoParaImportar = key;
+            grupoIDImportar = key;
             document.getElementById('fileImport').click();
         }
 
@@ -159,50 +156,65 @@
             const file = e.target.files[0];
             const reader = new FileReader();
             reader.onload = (evt) => {
-                const data = evt.target.result;
-                const workbook = XLSX.read(data, { type: 'binary' });
-                const firstSheet = workbook.SheetNames[0];
-                const rows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet]);
+                const workbook = XLSX.read(evt.target.result, { type: 'binary' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_row_object_array(sheet);
                 
                 rows.forEach(row => {
-                    const nombreAlumno = row.Nombre || row.nombre || row.NOMBRE;
-                    if(nombreAlumno) {
-                        db.ref('alumnos/' + grupoSeleccionadoParaImportar).push({ nombre: nombreAlumno });
-                    }
+                    const nombreAl = row.Nombre || row.nombre || row.Alumno;
+                    if(nombreAl) db.ref('alumnos/' + grupoIDImportar).push({ nombre: nombreAl });
                 });
-                alert("Importación completada con éxito");
-                e.target.value = ""; // Limpiar input
+                alert("Alumnos importados correctamente");
             };
             reader.readAsBinaryString(file);
         }
 
-        // --- RENDERIZADO TIEMPO REAL ---
+        // --- RENDERIZADO EN TIEMPO REAL ---
+        
+        // Escuelas
         db.ref('escuelas').on('value', snap => {
-            const d = snap.val();
+            const datos = snap.val();
+            const cont = document.getElementById('listaEscuelas');
             const sel = document.getElementById('selEscuela');
+            cont.innerHTML = "";
             sel.innerHTML = '<option value="">-- Selecciona Escuela --</option>';
-            if(d) Object.keys(d).forEach(k => sel.innerHTML += `<option value="${k}">${d[k].apodo}</option>`);
+
+            if(datos) {
+                Object.keys(datos).forEach(key => {
+                    const e = datos[key];
+                    // Para la lista
+                    cont.innerHTML += `
+                        <div class="item-row">
+                            <div class="info"><strong>${e.apodo || e.apiEsc}</strong><small>${e.nombre || e.nomEsc}</small></div>
+                            <div class="actions"><span class="icon-btn" onclick="eliminarEscuela('${key}')">🗑️</span></div>
+                        </div>`;
+                    // Para el selector de grupos
+                    sel.innerHTML += `<option value="${key}">${e.apodo || e.apiEsc}</option>`;
+                });
+            }
         });
 
+        // Grupos
         db.ref('grupos').on('value', snap => {
-            const d = snap.val();
+            const datos = snap.val();
             const cont = document.getElementById('listaGrupos');
             cont.innerHTML = "";
-            if(!d) return cont.innerHTML = "No hay grupos.";
-            Object.keys(d).forEach(k => {
-                cont.innerHTML += `
-                    <div class="item-row">
-                        <div class="info">
-                            <strong>${d[k].nomGrupo}</strong><br>
-                            <small>${d[k].escTxt}</small>
-                        </div>
-                        <div class="actions">
-                            <span class="icon-btn" title="Importar Excel" onclick="dispararImportar('${k}')">📥</span>
-                            <span class="icon-btn" title="Editar" onclick="editarGrupo('${k}','${d[k].escId}','${d[k].nomGrupo}')">✏️</span>
-                            <span class="icon-btn" title="Eliminar" onclick="eliminarGrupo('${k}')">🗑️</span>
-                        </div>
-                    </div>`;
-            });
+
+            if(datos) {
+                Object.keys(datos).forEach(key => {
+                    const g = datos[key];
+                    cont.innerHTML += `
+                        <div class="item-row">
+                            <div class="info"><strong>${g.nombreGrupo || g.nomGrupo}</strong><small>${g.escTxt}</small></div>
+                            <div class="actions">
+                                <span class="icon-btn" onclick="dispararImportar('${key}')">📥</span>
+                                <span class="icon-btn" onclick="eliminarGrupo('${key}')">🗑️</span>
+                            </div>
+                        </div>`;
+                });
+            } else {
+                cont.innerHTML = "No hay grupos creados.";
+            }
         });
     </script>
 </body>
