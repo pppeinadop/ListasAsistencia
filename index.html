@@ -12,41 +12,42 @@
     
     <style>
         :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --danger: #FF3B30; --success: #34C759; --warning: #FF9500; }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); }
         .screen { display: none; width: 100%; max-width: 800px; margin: auto; animation: fadeIn 0.2s; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; transition: opacity 0.2s; }
+        .btn:active { opacity: 0.7; }
         .btn-primary { background: var(--primary); }
         .btn-success { background: var(--success); }
         .btn-warning { background: var(--warning); }
         
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
         
-        /* Tabla de Reporte Pro */
+        /* Tablas */
         .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; }
         table { width: 100%; border-collapse: collapse; background: white; min-width: 600px; }
-        th { background: #f8f8f8; position: sticky; top: 0; padding: 12px; font-size: 12px; border: 1px solid #eee; }
+        th { background: #f8f8f8; padding: 12px; font-size: 11px; border: 1px solid #eee; text-transform: uppercase; }
         td { padding: 10px; font-size: 13px; border: 1px solid #eee; text-align: center; }
-        .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white; position: sticky; left: 0; z-index: 1; }
+        .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white; position: sticky; left: 0; z-index: 1; border-right: 2px solid #eee; }
         
-        /* Círculos de asistencia */
         .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
         .dot-si { background-color: var(--success); }
         .dot-no { background-color: var(--danger); }
 
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .menu-item { aspect-ratio: 1/1; background: white; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; text-decoration: none; color: inherit; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .menu-item { aspect-ratio: 1/1; background: white; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
     <div id="home" class="screen active">
-        <h1 style="text-align:center">Dr. Peinado</h1>
+        <h1 style="text-align:center; margin-top: 40px;">Dr. Peinado</h1>
+        <p style="text-align:center; color: var(--secondary); margin-bottom: 40px;">Gestión Escolar</p>
         <div class="menu-grid">
             <button class="menu-item" onclick="navegar('escuelas')"><span style="font-size:40px">🏫</span>Escuelas</button>
             <button class="menu-item" onclick="navegar('grupos')"><span style="font-size:40px">👥</span>Grupos</button>
@@ -61,9 +62,9 @@
             <h3>Nueva Escuela</h3>
             <input type="text" id="nombreEscuela" placeholder="Nombre completo">
             <input type="text" id="apodoEscuela" placeholder="Siglas">
-            <button class="btn btn-primary" onclick="guardarEscuela()">Guardar</button>
+            <button class="btn btn-primary" onclick="guardarEscuela()">Guardar Escuela</button>
         </div>
-        <div class="card"><div id="listaEscuelas"></div></div>
+        <div class="card"><h3>Registradas</h3><div id="listaEscuelas"></div></div>
     </div>
 
     <div id="grupos" class="screen">
@@ -89,8 +90,8 @@
         <div id="asistencia-flujo" class="card" style="display:none; text-align:center">
             <div id="nombre-display" style="font-size:32px; font-weight:800; margin:40px 0; color:var(--primary)"></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-                <button class="btn" style="background:var(--danger); padding:30px" onclick="registrarAsis(false)">FALTA</button>
-                <button class="btn" style="background:var(--success); padding:30px" onclick="registrarAsis(true)">PRESENTE</button>
+                <button class="btn" style="background:var(--danger); padding:30px" onclick="registrarAsis(false)">✖ FALTA</button>
+                <button class="btn" style="background:var(--success); padding:30px" onclick="registrarAsis(true)">✔ PRESENTE</button>
             </div>
         </div>
     </div>
@@ -98,7 +99,7 @@
     <div id="reportes" class="screen" style="max-width:100%">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div class="card">
-            <h3>Filtro de Asistencia</h3>
+            <h3>Reporte Multifuncional</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
                 <select id="rep-escuela" onchange="filtrarGrupos('rep-escuela', 'rep-grupo')"></select>
                 <select id="rep-grupo" onchange="consultarReporte()"></select>
@@ -108,20 +109,22 @@
                 <div><label>Hasta:</label><input type="date" id="fecha-fin" onchange="consultarReporte()"></div>
             </div>
             
-            <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Selecciona grupo y fechas.</div>
+            <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Selecciona grupo y rango de fechas.</div>
 
-            <div id="reporte-tabla-cont" class="table-container" style="display:none">
-                <table id="tabla-exportar">
-                    <thead id="head-reporte"></thead>
-                    <tbody id="body-reporte"></tbody>
-                </table>
-                <button class="btn btn-warning" onclick="exportarExcelFull()">Exportar este rango a Excel 📥</button>
+            <div id="reporte-tabla-cont" style="display:none">
+                <div class="table-container">
+                    <table id="tabla-exportar">
+                        <thead id="head-reporte"></thead>
+                        <tbody id="body-reporte"></tbody>
+                    </table>
+                </div>
+                <button class="btn btn-warning" onclick="exportarExcelFull()">Exportar a Excel 📥</button>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN FIREBASE (Tus credenciales)
+        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
             authDomain: "listasasistencia-3a3ca.firebaseapp.com",
@@ -139,16 +142,35 @@
         let indexAlu = 0;
         let grupoIdGlobal = "";
 
+        // FUNCIÓN DE NAVEGACIÓN CON RESET COMPLETO
         function navegar(id) {
+            // 1. Ocultar todas las pantallas
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            // 2. Limpiar todos los Inputs de texto
+            document.querySelectorAll('input[type="text"]').forEach(i => i.value = "");
+            // 3. Reset de variables de control
+            indexAlu = 0;
+            listaAlumnosActual = [];
+            grupoIdGlobal = "";
+            // 4. Reset visual de Asistencia
+            document.getElementById('asistencia-seleccion').style.display = 'block';
+            document.getElementById('asistencia-flujo').style.display = 'none';
+            // 5. Reset visual de Reportes
+            if(document.getElementById('reporte-tabla-cont')) {
+                document.getElementById('reporte-tabla-cont').style.display = 'none';
+                document.getElementById('reporte-vacio').style.display = 'block';
+                document.getElementById('reporte-vacio').innerText = "Selecciona grupo y rango de fechas.";
+            }
+            // 6. Reset de fechas en reportes
             if(id === 'reportes') {
                 const hoy = new Date().toISOString().split('T')[0];
                 document.getElementById('fecha-fin').value = hoy;
-                // Por defecto 30 días atrás
                 const haceMes = new Date(); haceMes.setDate(haceMes.getDate() - 30);
                 document.getElementById('fecha-inicio').value = haceMes.toISOString().split('T')[0];
             }
+            // 7. Mostrar pantalla destino
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
         }
 
         // --- LÓGICA GENERAL ---
@@ -156,6 +178,7 @@
             const escId = document.getElementById(idEsc).value;
             const selG = document.getElementById(idGrup);
             selG.innerHTML = '<option value="">-- Grupo --</option>';
+            if(!escId) return;
             Object.keys(todosGrupos).forEach(k => {
                 if(todosGrupos[k].escuelaId === escId) selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`;
             });
@@ -164,16 +187,22 @@
         function guardarEscuela() {
             const n = document.getElementById('nombreEscuela').value;
             const a = document.getElementById('apodoEscuela').value;
-            if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a });
-            document.getElementById('nombreEscuela').value = ""; document.getElementById('apodoEscuela').value = "";
+            if(!n || !a) return alert("Llena todos los campos");
+            db.ref('escuelas').push({ nombre: n, apodo: a }).then(() => {
+                alert("Escuela guardada");
+                navegar('home');
+            });
         }
 
         function guardarGrupo() {
             const eId = document.getElementById('selectEscuelaGrupo').value;
             const eTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
             const nG = document.getElementById('nombreGrupo').value;
-            if(eId && nG) db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG });
-            document.getElementById('nombreGrupo').value = "";
+            if(!eId || !nG) return alert("Selecciona escuela y nombre");
+            db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG }).then(() => {
+                alert("Grupo guardado");
+                navegar('home');
+            });
         }
 
         function leerExcel(e) {
@@ -182,22 +211,24 @@
             reader.onload = (evt) => {
                 const workbook = XLSX.read(evt.target.result, {type:'binary'});
                 const rows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[workbook.SheetNames[0]]);
+                let count = 0;
                 rows.forEach(r => {
-                    const nom = r.Nombre || r.nombre || r.ALUMNO;
-                    if(nom) db.ref('alumnos/'+grupoIdGlobal).push({ nombre: nom });
+                    const nom = r.Nombre || r.nombre || r.ALUMNO || r.Alumno;
+                    if(nom) { db.ref('alumnos/'+grupoIdGlobal).push({ nombre: nom }); count++; }
                 });
-                alert("Importado");
+                alert("Se importaron " + count + " alumnos.");
+                navegar('home');
             };
             reader.readAsBinaryString(file);
         }
 
-        // --- FLUJO ASISTENCIA ---
+        // --- ASISTENCIA ---
         function iniciarPasarLista() {
             grupoIdGlobal = document.getElementById('asis-grupo').value;
-            if(!grupoIdGlobal) return;
+            if(!grupoIdGlobal) return alert("Selecciona un grupo");
             db.ref('alumnos/'+grupoIdGlobal).once('value', snap => {
                 const d = snap.val();
-                if(!d) return alert("Sin alumnos registrados");
+                if(!d) return alert("Este grupo no tiene alumnos cargados.");
                 listaAlumnosActual = Object.keys(d).map(k => ({id: k, nombre: d[k].nombre}));
                 indexAlu = 0;
                 document.getElementById('asistencia-seleccion').style.display='none';
@@ -210,10 +241,8 @@
             if(indexAlu < listaAlumnosActual.length) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
             } else {
-                alert("Finalizado");
+                alert("Pase de lista terminado con éxito");
                 navegar('home');
-                document.getElementById('asistencia-seleccion').style.display='block';
-                document.getElementById('asistencia-flujo').style.display='none';
             }
         }
 
@@ -227,48 +256,42 @@
             mostrarProximoAlu();
         }
 
-        // --- REPORTES MULTI-FECHA ---
+        // --- REPORTES ---
         function consultarReporte() {
             const gId = document.getElementById('rep-grupo').value;
             const inicio = document.getElementById('fecha-inicio').value;
             const fin = document.getElementById('fecha-fin').value;
-            if(!gId) return;
+            if(!gId || !inicio || !fin) return;
 
             db.ref(`asistencias/${gId}`).once('value', snap => {
                 const d = snap.val();
                 const cont = document.getElementById('reporte-tabla-cont');
                 const vacio = document.getElementById('reporte-vacio');
-                const head = document.getElementById('head-reporte');
-                const body = document.getElementById('body-reporte');
+                if(!d) { cont.style.display='none'; vacio.style.display='block'; vacio.innerText="No hay registros para este grupo."; return; }
 
-                if(!d) { cont.style.display='none'; vacio.style.display='block'; return; }
-
-                // Obtener todas las fechas en el rango
-                const fechasDisponibles = Object.keys(d).filter(f => f >= inicio && f <= fin).sort();
-                if(fechasDisponibles.length === 0) { cont.style.display='none'; vacio.innerText="No hay datos en este rango."; return; }
+                const fechas = Object.keys(d).filter(f => f >= inicio && f <= fin).sort();
+                if(fechas.length === 0) { cont.style.display='none'; vacio.style.display='block'; vacio.innerText="No hay datos en el rango seleccionado."; return; }
 
                 cont.style.display='block'; vacio.style.display='none';
                 
-                // Crear Cabecera
                 let headHtml = `<tr><th class="name-col">Alumno</th>`;
-                fechasDisponibles.forEach(f => headHtml += `<th>${f.split('-')[2]}/${f.split('-')[1]}</th>`);
+                fechas.forEach(f => headHtml += `<th>${f.split('-')[2]}/${f.split('-')[1]}</th>`);
                 headHtml += `</tr>`;
-                head.innerHTML = headHtml;
+                document.getElementById('head-reporte').innerHTML = headHtml;
 
-                // Mapear alumnos únicos del grupo
                 db.ref('alumnos/'+gId).once('value', snapAlu => {
                     const alus = snapAlu.val();
                     let bodyHtml = "";
                     Object.keys(alus).forEach(aId => {
                         bodyHtml += `<tr><td class="name-col">${alus[aId].nombre}</td>`;
-                        fechasDisponibles.forEach(f => {
-                            const registro = d[f][aId];
-                            const icono = registro ? (registro.presente ? '<span class="dot dot-si"></span>' : '<span class="dot dot-no"></span>') : '-';
+                        fechas.forEach(f => {
+                            const reg = d[f] ? d[f][aId] : null;
+                            const icono = reg ? (reg.presente ? '<span class="dot dot-si"></span>' : '<span class="dot dot-no"></span>') : '-';
                             bodyHtml += `<td>${icono}</td>`;
                         });
                         bodyHtml += `</tr>`;
                     });
-                    body.innerHTML = bodyHtml;
+                    document.getElementById('body-reporte').innerHTML = bodyHtml;
                 });
             });
         }
@@ -276,17 +299,17 @@
         function exportarExcelFull() {
             const tabla = document.getElementById("tabla-exportar");
             const wb = XLSX.utils.table_to_book(tabla);
-            XLSX.writeFile(wb, "Reporte_Asistencia.xlsx");
+            XLSX.writeFile(wb, "Reporte_Asistencia_DrPeinado.xlsx");
         }
 
-        // --- CARGA INICIAL ---
+        // --- SINCRONIZACIÓN TIEMPO REAL ---
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
             const list = document.getElementById('listaEscuelas'); list.innerHTML = "";
-            sels.forEach(s => s.innerHTML = '<option value="">-- Escuela --</option>');
+            sels.forEach(s => s.innerHTML = '<option value="">-- Selecciona Escuela --</option>');
             if(d) Object.keys(d).forEach(k => {
-                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee">${d[k].apodo} <span onclick="db.ref('escuelas/${k}').remove()" style="float:right">🗑️</span></div>`;
+                list.innerHTML += `<div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between"><span><strong>${d[k].apodo}</strong> - ${d[k].nombre}</span> <span onclick="if(confirm('¿Eliminar?')) db.ref('escuelas/${k}').remove()" style="cursor:pointer">🗑️</span></div>`;
                 sels.forEach(s => s.innerHTML += `<option value="${k}">${d[k].apodo}</option>`);
             });
         });
@@ -295,9 +318,12 @@
             todosGrupos = snap.val() || {};
             const list = document.getElementById('listaGrupos'); list.innerHTML = "";
             Object.keys(todosGrupos).forEach(k => {
-                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee">${todosGrupos[k].nombreGrupo} 
-                <span onclick="db.ref('grupos/${k}').remove()" style="float:right; margin-left:15px">🗑️</span>
-                <span onclick="grupoIdGlobal='${k}';document.getElementById('inputExcel').click()" style="float:right">📥</span></div>`;
+                list.innerHTML += `<div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between">
+                <div><strong>${todosGrupos[k].nombreGrupo}</strong><br><small>${todosGrupos[k].escuelaTxt}</small></div>
+                <div style="font-size:20px">
+                    <span onclick="grupoIdGlobal='${k}';document.getElementById('inputExcel').click()" style="cursor:pointer; margin-right:15px">📥</span>
+                    <span onclick="if(confirm('¿Eliminar?')) db.ref('grupos/${k}').remove()" style="cursor:pointer">🗑️</span>
+                </div></div>`;
             });
         });
     </script>
