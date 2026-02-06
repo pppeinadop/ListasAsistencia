@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Asistencia Dr. Peinado - Final</title>
+    <title>Asistencia Dr. Peinado</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -25,6 +25,32 @@
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
         
+        /* MENU PRINCIPAL COMPACTO */
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            max-width: 400px; /* Limita el ancho total del menú */
+            margin: 0 auto; 
+        }
+        .menu-item { 
+            padding: 20px 10px; /* Reducido a la mitad */
+            background: white; 
+            border-radius: 18px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 600; 
+            font-size: 14px;
+            cursor: pointer; 
+            border: none; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04); 
+            transition: transform 0.1s;
+        }
+        .menu-item:active { transform: scale(0.95); background: #f9f9f9; }
+        .menu-item span { font-size: 28px; margin-bottom: 8px; } /* Iconos más pequeños */
+
         /* Tablas */
         .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 60vh; }
         table { width: 100%; border-collapse: collapse; background: white; min-width: 700px; }
@@ -35,21 +61,19 @@
         .dot { height: 14px; width: 14px; border-radius: 50%; display: inline-block; }
         .dot-si { background-color: var(--success); }
         .dot-no { background-color: var(--danger); }
-
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .menu-item { aspect-ratio: 1/1; background: white; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
     <div id="home" class="screen active">
-        <h1 style="text-align:center; margin-top: 40px;">Dr. Peinado</h1>
-        <p style="text-align:center; color: var(--secondary); margin-bottom: 40px;">Control Escolar</p>
+        <h1 style="text-align:center; margin-top: 30px; font-size: 24px;">Dr. Peinado</h1>
+        <p style="text-align:center; color: var(--secondary); margin-bottom: 30px; font-size: 14px;">Control de Asistencia</p>
+        
         <div class="menu-grid">
-            <button class="menu-item" onclick="navegar('escuelas')"><span style="font-size:40px">🏫</span>Escuelas</button>
-            <button class="menu-item" onclick="navegar('grupos')"><span style="font-size:40px">👥</span>Grupos</button>
-            <button class="menu-item" onclick="navegar('asistencia')"><span style="font-size:40px">⏱️</span>Asistencia</button>
-            <button class="menu-item" onclick="navegar('reportes')"><span style="font-size:40px">📊</span>Reportes</button>
+            <button class="menu-item" onclick="navegar('escuelas')"><span>🏫</span>Escuelas</button>
+            <button class="menu-item" onclick="navegar('grupos')"><span>👥</span>Grupos</button>
+            <button class="menu-item" onclick="navegar('asistencia')"><span>⏱️</span>Asistencia</button>
+            <button class="menu-item" onclick="navegar('reportes')"><span>📊</span>Reportes</button>
         </div>
     </div>
 
@@ -119,6 +143,7 @@
     </div>
 
     <script>
+        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
             authDomain: "listasasistencia-3a3ca.firebaseapp.com",
@@ -137,9 +162,18 @@
         let grupoIdGlobal = "";
         let sessionIdActual = "";
 
+        // NAVEGACIÓN Y RESET
         function navegar(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            if (id === 'home') resetearApp();
+            if (id === 'home') {
+                document.querySelectorAll('input').forEach(i => i.value = "");
+                document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+                indexAlu = 0; listaAlumnosActual = []; grupoIdGlobal = "";
+                document.getElementById('asistencia-seleccion').style.display = 'block';
+                document.getElementById('asistencia-flujo').style.display = 'none';
+                document.getElementById('reporte-tabla-cont').style.display = 'none';
+                document.getElementById('reporte-vacio').style.display = 'block';
+            }
             if (id === 'reportes') {
                 const hoy = new Date().toISOString().split('T')[0];
                 document.getElementById('fecha-fin').value = hoy;
@@ -150,16 +184,7 @@
             window.scrollTo(0,0);
         }
 
-        function resetearApp() {
-            document.querySelectorAll('input').forEach(i => i.value = "");
-            document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-            indexAlu = 0; listaAlumnosActual = []; grupoIdGlobal = "";
-            document.getElementById('asistencia-seleccion').style.display = 'block';
-            document.getElementById('asistencia-flujo').style.display = 'none';
-            document.getElementById('reporte-tabla-cont').style.display = 'none';
-            document.getElementById('reporte-vacio').style.display = 'block';
-        }
-
+        // LÓGICA DE NEGOCIO (IGUAL A LA ANTERIOR)
         function filtrarGrupos(idEsc, idGrup) {
             const escId = document.getElementById(idEsc).value;
             const selG = document.getElementById(idGrup);
@@ -192,14 +217,14 @@
                     const nom = r.Nombre || r.nombre || r.ALUMNO;
                     if(nom) db.ref('alumnos/'+grupoIdGlobal).push({ nombre: nom });
                 });
-                alert("Alumnos Importados"); navegar('home');
+                alert("Importados"); navegar('home');
             };
             reader.readAsBinaryString(file);
         }
 
         function iniciarPasarLista() {
             grupoIdGlobal = document.getElementById('asis-grupo').value;
-            if(!grupoIdGlobal) return alert("Selecciona grupo");
+            if(!grupoIdGlobal) return;
             const ahora = new Date();
             sessionIdActual = ahora.toISOString().split('T')[0] + "_" + ahora.getHours().toString().padStart(2,'0') + ahora.getMinutes().toString().padStart(2,'0');
             db.ref('alumnos/'+grupoIdGlobal).once('value', snap => {
@@ -215,7 +240,7 @@
             if(indexAlu < listaAlumnosActual.length) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
             } else {
-                alert("Sesión finalizada"); navegar('home');
+                alert("Listo"); navegar('home');
             }
         }
 
@@ -257,8 +282,7 @@
                         sesiones.forEach(sId => {
                             const reg = d[sId][aId];
                             const letra = reg ? (reg.presente ? 'A' : 'F') : '-';
-                            const dotClass = reg ? (reg.presente ? 'dot-si' : 'dot-no') : '';
-                            bodyHtml += `<td data-export="${letra}">${reg ? `<span class="dot ${dotClass}"></span>` : '-'}</td>`;
+                            bodyHtml += `<td data-export="${letra}">${reg ? `<span class="dot ${reg.presente?'dot-si':'dot-no'}"></span>` : '-'}</td>`;
                         });
                         bodyHtml += `</tr>`;
                     });
@@ -268,17 +292,13 @@
         }
 
         function exportarExcelAF() {
-            const tablaOriginal = document.getElementById("tabla-datos");
-            const clon = tablaOriginal.cloneNode(true);
-            clon.querySelectorAll('td').forEach(td => {
-                if (td.hasAttribute('data-export')) {
-                    td.innerText = td.getAttribute('data-export');
-                }
-            });
-            const wb = XLSX.utils.table_to_book(clon);
-            XLSX.writeFile(wb, "Asistencia_DrPeinado_AF.xlsx");
+            const tabla = document.getElementById("tabla-datos");
+            const clon = tabla.cloneNode(true);
+            clon.querySelectorAll('td').forEach(td => { if(td.hasAttribute('data-export')) td.innerText = td.getAttribute('data-export'); });
+            XLSX.writeFile(XLSX.utils.table_to_book(clon), "Asistencia_DrPeinado.xlsx");
         }
 
+        // SYNC FIREBASE
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
