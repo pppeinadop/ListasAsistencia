@@ -16,69 +16,90 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     
     <style>
-        :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; }
+        :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --success: #34C759; --danger: #FF3B30; }
         * { box-sizing: border-box; }
         body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        
         .screen { display: none; width: 100%; max-width: 500px; }
         .active { display: block; }
+        
         .main-header { text-align: center; margin-bottom: 30px; }
         .menu-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+        
         .menu-button { aspect-ratio: 1/1; background: var(--card-bg); border: none; border-radius: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         .menu-button:active { transform: scale(0.95); }
         .menu-button .icon { font-size: 40px; margin-bottom: 10px; }
+        
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; color: var(--secondary); }
-        input { width: 100%; padding: 12px; border: 1px solid #DDD; border-radius: 12px; font-size: 16px; outline: none; }
+        
+        input, select { width: 100%; padding: 12px; border: 1px solid #DDD; border-radius: 12px; font-size: 16px; outline: none; background: #fff; }
+        
         .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
-        .escuela-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #F2F2F7; }
-        .logo-preview { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; background: #EEE; border: 1px solid #DDD; }
+        
+        /* Estilos para la lista de escuelas con acciones */
+        .item-row { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #F2F2F7; position: relative; transition: background 0.2s; border-radius: 10px; }
+        .item-row:hover { background: #F9F9F9; }
+        .logo-small { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; background: #EEE; border: 1px solid #eee; }
+        
+        .info-container { flex: 1; }
+        .actions-overlay { display: flex; gap: 8px; opacity: 0.3; transition: opacity 0.2s; }
+        .item-row:hover .actions-overlay { opacity: 1; }
+        
+        .action-icon { cursor: pointer; font-size: 18px; padding: 8px; border-radius: 8px; transition: background 0.2s; }
+        .edit-icon:hover { background: #E8F2FF; color: var(--primary); }
+        .delete-icon:hover { background: #FFEBEA; color: var(--danger); }
     </style>
 </head>
 <body>
 
     <div id="home" class="screen active">
-        <header class="main-header">
-            <h1>Asistencia - Dr. Peinado</h1>
-        </header>
+        <header class="main-header"><h1>Asistencia - Dr. Peinado</h1></header>
         <div class="menu-container">
-            <button class="menu-button" onclick="navegar('escuelas')">
-                <span class="icon">🏫</span>
-                <span>Escuelas</span>
-            </button>
-            <button class="menu-button" onclick="navegar('grupos')">
-                <span class="icon">👥</span>
-                <span>Grupos</span>
-            </button>
+            <button class="menu-button" onclick="navegar('escuelas')"><span class="icon">🏫</span><span>Escuelas</span></button>
+            <button class="menu-button" onclick="navegar('grupos')"><span class="icon">👥</span><span>Grupos</span></button>
         </div>
     </div>
 
     <div id="escuelas" class="screen">
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
         <div class="card">
-            <h3>Nueva Escuela</h3>
-            <div class="form-group"><label>Nombre Completo</label><input type="text" id="nombreEscuela"></div>
+            <h3 id="formTitle">Nueva Escuela</h3>
+            <input type="hidden" id="editKey"> <div class="form-group"><label>Nombre Completo</label><input type="text" id="nombreEscuela"></div>
             <div class="form-group"><label>Apodo / Siglas</label><input type="text" id="apodoEscuela"></div>
-            <div class="form-group"><label>Logo de Escuela</label><input type="file" id="logoEscuela" accept="image/*"></div>
-            <button class="btn-save" onclick="guardarEscuela()">Guardar en la Nube</button>
+            <div class="form-group"><label>Logo</label><input type="file" id="logoEscuela" accept="image/*"></div>
+            <button class="btn-save" id="btnGuardarEscuela" onclick="guardarEscuela()">Guardar en la Nube</button>
+            <button id="btnCancelarEdit" style="display:none; width:100%; background:none; border:none; color:var(--danger); margin-top:10px; cursor:pointer;" onclick="cancelarEdicion()">Cancelar Edición</button>
         </div>
         <div class="card">
-            <h3>Escuelas en la Red</h3>
-            <div id="listaEscuelas">Sincronizando con Firebase...</div>
+            <h3>Escuelas Registradas</h3>
+            <div id="listaEscuelas">Cargando...</div>
         </div>
     </div>
 
     <div id="grupos" class="screen">
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
         <div class="card">
-            <h2>Gestión de Grupos</h2>
-            <p style="color:gray">Próximamente: Podrás asignar grupos a tus escuelas.</p>
+            <h3>Nuevo Grupo</h3>
+            <div class="form-group">
+                <label>Seleccionar Escuela</label>
+                <select id="selectEscuelaGrupo"><option>Cargando escuelas...</option></select>
+            </div>
+            <div class="form-group">
+                <label>Nombre del Grupo / Materia</label>
+                <input type="text" id="nombreGrupo" placeholder="Ej. Anatomía - 2do A">
+            </div>
+            <button class="btn-save" style="background: var(--success)" onclick="guardarGrupo()">Crear Grupo</button>
+        </div>
+        <div class="card">
+            <h3>Mis Grupos</h3>
+            <div id="listaGrupos">Cargando grupos...</div>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN OFICIAL DEL DR. PEINADO
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
             authDomain: "listasasistencia-3a3ca.firebaseapp.com",
@@ -90,62 +111,140 @@
             measurementId: "G-3XW8X7S15L"
         };
 
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         function navegar(idPantalla) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(idPantalla).classList.add('active');
+            cancelarEdicion(); // Resetear formulario al cambiar de pantalla
         }
+
+        // --- LÓGICA DE ESCUELAS ---
+        let logoBase64Actual = null; // Para mantener el logo si no se sube uno nuevo al editar
 
         function guardarEscuela() {
             const nombre = document.getElementById('nombreEscuela').value;
             const apodo = document.getElementById('apodoEscuela').value;
+            const key = document.getElementById('editKey').value;
             const file = document.getElementById('logoEscuela').files[0];
 
-            if (!nombre || !apodo) return alert("Por favor, llena los campos de texto.");
+            if (!nombre || !apodo) return alert("Llena los campos");
 
             if (file) {
                 const reader = new FileReader();
-                reader.onloadend = () => enviar(nombre, apodo, reader.result);
+                reader.onloadend = () => ejecutarEnvio(nombre, apodo, reader.result, key);
                 reader.readAsDataURL(file);
             } else {
-                enviar(nombre, apodo, null);
+                ejecutarEnvio(nombre, apodo, logoBase64Actual, key);
             }
         }
 
-        function enviar(nombre, apodo, logo) {
-            db.ref('escuelas').push({ nombre, apodo, logo })
-            .then(() => {
-                document.getElementById('nombreEscuela').value = "";
-                document.getElementById('apodoEscuela').value = "";
-                document.getElementById('logoEscuela').value = "";
-                alert("Escuela guardada en la nube.");
-            })
-            .catch(error => alert("Error: " + error.message));
+        function ejecutarEnvio(nombre, apodo, logo, key) {
+            const data = { nombre, apodo, logo };
+            
+            if (key) {
+                // Actualizar existente
+                db.ref('escuelas/' + key).update(data).then(() => {
+                    alert("Escuela actualizada");
+                    cancelarEdicion();
+                });
+            } else {
+                // Crear nueva
+                db.ref('escuelas').push(data).then(() => {
+                    alert("Escuela guardada");
+                    limpiarFormEscuela();
+                });
+            }
         }
 
-        // Leer datos en tiempo real
-        db.ref('escuelas').on('value', (snapshot) => {
-            const contenedor = document.getElementById('listaEscuelas');
-            contenedor.innerHTML = "";
-            const datos = snapshot.val();
+        function eliminarEscuela(key) {
+            if (confirm("¿Seguro que quieres eliminar esta escuela? También se perderá la referencia en Grupos.")) {
+                db.ref('escuelas/' + key).remove();
+            }
+        }
+
+        function prepararEdicion(key, nombre, apodo, logo) {
+            document.getElementById('editKey').value = key;
+            document.getElementById('nombreEscuela').value = nombre;
+            document.getElementById('apodoEscuela').value = apodo;
+            logoBase64Actual = logo;
             
+            document.getElementById('formTitle').innerText = "Editar Escuela";
+            document.getElementById('btnGuardarEscuela').innerText = "Actualizar Cambios";
+            document.getElementById('btnCancelarEdit').style.display = "block";
+            window.scrollTo(0,0); // Subir al formulario
+        }
+
+        function cancelarEdicion() {
+            limpiarFormEscuela();
+            document.getElementById('formTitle').innerText = "Nueva Escuela";
+            document.getElementById('btnGuardarEscuela').innerText = "Guardar en la Nube";
+            document.getElementById('btnCancelarEdit').style.display = "none";
+            document.getElementById('editKey').value = "";
+            logoBase64Actual = null;
+        }
+
+        function limpiarFormEscuela() {
+            document.getElementById('nombreEscuela').value = "";
+            document.getElementById('apodoEscuela').value = "";
+            document.getElementById('logoEscuela').value = "";
+        }
+
+        // --- LÓGICA DE GRUPOS ---
+        function guardarGrupo() {
+            const escuelaId = document.getElementById('selectEscuelaGrupo').value;
+            const nombreG = document.getElementById('nombreGrupo').value;
+            const escuelaTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
+
+            if (!escuelaId || !nombreG) return alert("Selecciona escuela y pon nombre al grupo");
+
+            db.ref('grupos').push({ escuelaId, escuelaTxt, nombreGrupo: nombreG })
+            .then(() => {
+                document.getElementById('nombreGrupo').value = "";
+                alert("Grupo creado");
+            });
+        }
+
+        // --- ESCUCHAR DATOS ---
+        db.ref('escuelas').on('value', (snapshot) => {
+            const datos = snapshot.val();
+            const listaE = document.getElementById('listaEscuelas');
+            const selectE = document.getElementById('selectEscuelaGrupo');
+            
+            listaE.innerHTML = "";
+            selectE.innerHTML = '<option value="">-- Selecciona Escuela --</option>';
+
             if (!datos) {
-                contenedor.innerHTML = "<p style='color:gray'>No hay escuelas registradas todavía.</p>";
+                listaE.innerHTML = "No hay escuelas.";
                 return;
             }
 
-            Object.values(datos).forEach(esc => {
-                contenedor.innerHTML += `
-                    <div class="escuela-item">
-                        <img src="${esc.logo || 'https://via.placeholder.com/50'}" class="logo-preview">
-                        <div>
+            Object.keys(datos).forEach(id => {
+                const esc = datos[id];
+                listaE.innerHTML += `
+                    <div class="item-row">
+                        <img src="${esc.logo || 'https://via.placeholder.com/45'}" class="logo-small">
+                        <div class="info-container">
                             <strong>${esc.apodo}</strong><br>
                             <small style="color:gray">${esc.nombre}</small>
                         </div>
+                        <div class="actions-overlay">
+                            <span class="action-icon edit-icon" title="Editar" onclick="prepararEdicion('${id}', '${esc.nombre}', '${esc.apodo}', '${esc.logo}')">✏️</span>
+                            <span class="action-icon delete-icon" title="Eliminar" onclick="eliminarEscuela('${id}')">🗑️</span>
+                        </div>
                     </div>`;
+                selectE.innerHTML += `<option value="${id}">${esc.apodo}</option>`;
+            });
+        });
+
+        db.ref('grupos').on('value', (snapshot) => {
+            const datos = snapshot.val();
+            const contenedor = document.getElementById('listaGrupos');
+            contenedor.innerHTML = "";
+            if (!datos) return contenedor.innerHTML = "No hay grupos.";
+            Object.values(datos).forEach(g => {
+                contenedor.innerHTML += `<div class="item-row"><div><strong>${g.nombreGrupo}</strong><br><small style="color:var(--primary)">${g.escuelaTxt}</small></div></div>`;
             });
         });
     </script>
