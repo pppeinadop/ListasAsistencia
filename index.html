@@ -27,17 +27,23 @@
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
         .menu-item { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: none; text-align: center; }
         
-        /* Asistencia */
+        /* Tabla de Reportes */
+        .tabla-reporte { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        .tabla-reporte th { text-align: left; color: var(--secondary); padding: 8px; border-bottom: 2px solid #F2F2F7; }
+        .tabla-reporte td { padding: 10px 8px; border-bottom: 1px solid #F2F2F7; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: white; }
+        .badge-si { background: var(--success); }
+        .badge-no { background: var(--danger); }
+
+        /* Asistencia Flow */
         .alumno-card { text-align: center; padding: 40px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center; }
         .nombre-alumno { font-size: 32px; font-weight: 800; margin-bottom: 30px; color: var(--primary); }
         .asistencia-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .btn-check { padding: 25px; border-radius: 20px; border: none; color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
-        .si { background: var(--success); }
-        .no { background: var(--danger); }
         
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
         .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F2F2F7; }
         .info { flex: 1; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -60,8 +66,7 @@
         <div class="card">
             <h3>Nueva Escuela</h3>
             <input type="text" id="nombreEscuela" placeholder="Nombre completo">
-            <input type="text" id="apodoEscuela" placeholder="Siglas (UACH, etc)">
-            <input type="file" id="logoEscuela" accept="image/*">
+            <input type="text" id="apodoEscuela" placeholder="Siglas">
             <button class="btn-save" onclick="guardarEscuela()">Guardar</button>
         </div>
         <div class="card"><h3>Registradas</h3><div id="listaEscuelas"></div></div>
@@ -83,16 +88,16 @@
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
         <div id="asistencia-seleccion" class="card">
             <h3>Pasar Lista</h3>
-            <select id="asis-escuela" onchange="filtrarGrupos('asis-escuela', 'asis-grupo')"><option value="">Selecciona Escuela</option></select>
-            <select id="asis-grupo"><option value="">Selecciona Grupo</option></select>
+            <select id="asis-escuela" onchange="filtrarGrupos('asis-escuela', 'asis-grupo')"><option value="">Escuela</option></select>
+            <select id="asis-grupo"><option value="">Grupo</option></select>
             <button class="btn-save" onclick="iniciarPasarLista()">Comenzar</button>
         </div>
         <div id="asistencia-flujo" class="card alumno-card" style="display:none">
             <small id="progreso-asis" style="color:var(--secondary)"></small>
             <div id="nombre-display" class="nombre-alumno"></div>
             <div class="asistencia-botones">
-                <button class="btn-check no" onclick="registrarAsis(false)">✖</button>
-                <button class="btn-check si" onclick="registrarAsis(true)">✔</button>
+                <button class="btn-check" style="background:var(--danger)" onclick="registrarAsis(false)">FALTA</button>
+                <button class="btn-check" style="background:var(--success)" onclick="registrarAsis(true)">PRESENTE</button>
             </div>
         </div>
     </div>
@@ -100,18 +105,26 @@
     <div id="reportes" class="screen">
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
         <div class="card">
-            <h3>Exportar Reporte</h3>
-            <label>1. Escuela</label>
+            <h3>Visualizar Reporte</h3>
             <select id="rep-escuela" onchange="filtrarGrupos('rep-escuela', 'rep-grupo')"><option value="">Selecciona Escuela</option></select>
-            <label>2. Grupo</label>
-            <select id="rep-grupo"><option value="">Selecciona Grupo</option></select>
-            <label>3. Fecha</label>
-            <input type="date" id="rep-fecha">
-            <button class="btn-save" style="background:var(--warning)" onclick="exportarExcel()">Descargar Excel 📥</button>
+            <select id="rep-grupo" onchange="cargarVistaPrevia()"><option value="">Selecciona Grupo</option></select>
+            <input type="date" id="rep-fecha" onchange="cargarVistaPrevia()">
+            
+            <div id="contenedor-tabla" style="overflow-x:auto; margin-top:20px; display:none;">
+                <table class="tabla-reporte">
+                    <thead><tr><th>Alumno</th><th>Estado</th></tr></thead>
+                    <tbody id="cuerpo-tabla"></tbody>
+                </table>
+                <button class="btn-save" style="background:var(--warning); margin-top:20px" onclick="exportarExcel()">Descargar Excel 📥</button>
+            </div>
+            <div id="mensaje-vacio" style="text-align:center; color:gray; margin-top:20px;">
+                Selecciona grupo y fecha para ver los datos.
+            </div>
         </div>
     </div>
 
     <script>
+        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
             authDomain: "listasasistencia-3a3ca.firebaseapp.com",
@@ -132,11 +145,14 @@
         function navegar(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            // Reset de fecha hoy para reportes
-            if(id === 'reportes') document.getElementById('rep-fecha').valueAsDate = new Date();
+            if(id === 'reportes') {
+                document.getElementById('rep-fecha').valueAsDate = new Date();
+                document.getElementById('contenedor-tabla').style.display = 'none';
+                document.getElementById('mensaje-vacio').style.display = 'block';
+            }
         }
 
-        // --- GENERAL ---
+        // --- FUNCIONES COMUNES ---
         function filtrarGrupos(idEsc, idGrup) {
             const escId = document.getElementById(idEsc).value;
             const selG = document.getElementById(idGrup);
@@ -146,13 +162,12 @@
             });
         }
 
-        // --- ACCIONES ESCUELAS/GRUPOS ---
         function guardarEscuela() {
             const n = document.getElementById('nombreEscuela').value;
             const a = document.getElementById('apodoEscuela').value;
             if(!n || !a) return alert("Faltan datos");
             db.ref('escuelas').push({ nombre: n, apodo: a });
-            alert("Escuela guardada");
+            alert("Guardado");
         }
 
         function guardarGrupo() {
@@ -173,18 +188,18 @@
                     const nom = r.Nombre || r.nombre || r.ALUMNO;
                     if(nom) db.ref('alumnos/'+gIdActual).push({ nombre: nom });
                 });
-                alert("Importación exitosa");
+                alert("Importado con éxito");
             };
             reader.readAsBinaryString(file);
         }
 
-        // --- FLUJO ASISTENCIA ---
+        // --- ASISTENCIA ---
         function iniciarPasarLista() {
             gIdActual = document.getElementById('asis-grupo').value;
-            if(!gIdActual) return alert("Selecciona grupo");
+            if(!gIdActual) return alert("Elige un grupo");
             db.ref('alumnos/'+gIdActual).once('value', snap => {
                 const d = snap.val();
-                if(!d) return alert("Sin alumnos");
+                if(!d) return alert("No hay alumnos en este grupo");
                 alumnosLista = Object.keys(d).map(k => ({id: k, nombre: d[k].nombre}));
                 indexAlu = 0;
                 document.getElementById('asistencia-seleccion').style.display='none';
@@ -198,7 +213,7 @@
                 document.getElementById('progreso-asis').innerText = `Alumno ${indexAlu+1}/${alumnosLista.length}`;
                 document.getElementById('nombre-display').innerText = alumnosLista[indexAlu].nombre;
             } else {
-                alert("Lista finalizada");
+                alert("Pase de lista terminado");
                 navegar('home');
                 document.getElementById('asistencia-seleccion').style.display='block';
                 document.getElementById('asistencia-flujo').style.display='none';
@@ -215,21 +230,47 @@
             actualizarAlu();
         }
 
-        // --- REPORTES (EXCEL) ---
+        // --- REPORTES (VISUALIZACIÓN Y EXCEL) ---
+        function cargarVistaPrevia() {
+            const gId = document.getElementById('rep-grupo').value;
+            const fecha = document.getElementById('rep-fecha').value;
+            const tabla = document.getElementById('cuerpo-tabla');
+            const cont = document.getElementById('contenedor-tabla');
+            const mensaje = document.getElementById('mensaje-vacio');
+
+            if(!gId || !fecha) return;
+
+            db.ref(`asistencias/${gId}/${fecha}`).on('value', snap => {
+                const data = snap.val();
+                tabla.innerHTML = "";
+                if(data) {
+                    Object.keys(data).forEach(k => {
+                        const alu = data[k];
+                        tabla.innerHTML += `
+                            <tr>
+                                <td>${alu.nombre}</td>
+                                <td><span class="badge ${alu.presente ? 'badge-si' : 'badge-no'}">${alu.presente ? 'PRESENTE' : 'FALTA'}</span></td>
+                            </tr>`;
+                    });
+                    cont.style.display = 'block';
+                    mensaje.style.display = 'none';
+                } else {
+                    cont.style.display = 'none';
+                    mensaje.style.display = 'block';
+                    mensaje.innerText = "No hay registros de asistencia para esta fecha.";
+                }
+            });
+        }
+
         function exportarExcel() {
             const gId = document.getElementById('rep-grupo').value;
             const fecha = document.getElementById('rep-fecha').value;
-            if(!gId || !fecha) return alert("Selecciona grupo y fecha");
-
             db.ref(`asistencias/${gId}/${fecha}`).once('value', snap => {
                 const data = snap.val();
-                if(!data) return alert("No hay datos para esta fecha");
-
                 const rows = Object.keys(data).map(k => ({
                     Nombre: data[k].nombre,
-                    Asistencia: data[k].presente ? "PRESENTE" : "FALTA"
+                    Estado: data[k].presente ? "PRESENTE" : "FALTA"
                 }));
-
                 const ws = XLSX.utils.json_to_sheet(rows);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Asistencia");
@@ -237,7 +278,7 @@
             });
         }
 
-        // --- SYNC ---
+        // --- CARGA INICIAL ---
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const selects = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
