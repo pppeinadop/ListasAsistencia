@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Asistencia Dr. Peinado</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Dr. Peinado - Offline Pro</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -18,45 +19,27 @@
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* Indicador de Conexión */
+        #status-bar { position: fixed; top: 10px; right: 15px; font-size: 12px; font-weight: bold; z-index: 1000; display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; margin-right: 6px; }
+
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; }
-        .btn:active { opacity: 0.7; }
         
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
         
-        /* MENU PRINCIPAL COMPACTO */
-        .menu-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 12px; 
-            max-width: 400px; /* Limita el ancho total del menú */
-            margin: 0 auto; 
-        }
-        .menu-item { 
-            padding: 20px 10px; /* Reducido a la mitad */
-            background: white; 
-            border-radius: 18px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            font-weight: 600; 
-            font-size: 14px;
-            cursor: pointer; 
-            border: none; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04); 
-            transition: transform 0.1s;
-        }
-        .menu-item:active { transform: scale(0.95); background: #f9f9f9; }
-        .menu-item span { font-size: 28px; margin-bottom: 8px; } /* Iconos más pequeños */
+        /* Menú Compacto */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; margin: 0 auto; }
+        .menu-item { padding: 20px 10px; background: white; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .menu-item span { font-size: 28px; margin-bottom: 8px; }
 
-        /* Tablas */
-        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 60vh; }
-        table { width: 100%; border-collapse: collapse; background: white; min-width: 700px; }
+        /* Tabla Reporte */
+        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; }
+        table { width: 100%; border-collapse: collapse; background: white; min-width: 600px; }
         th { background: #f8f8f8; padding: 12px; font-size: 10px; border: 1px solid #eee; position: sticky; top: 0; z-index: 2; }
         td { padding: 10px; font-size: 13px; border: 1px solid #eee; text-align: center; }
-        .name-col { text-align: left; font-weight: bold; min-width: 180px; background: white; position: sticky; left: 0; z-index: 3; border-right: 2px solid #eee; }
+        .name-col { text-align: left; font-weight: bold; min-width: 160px; background: white; position: sticky; left: 0; z-index: 3; border-right: 2px solid #eee; }
         
         .dot { height: 14px; width: 14px; border-radius: 50%; display: inline-block; }
         .dot-si { background-color: var(--success); }
@@ -65,10 +48,14 @@
 </head>
 <body>
 
+    <div id="status-bar">
+        <div id="dot" class="status-dot" style="background: gray;"></div>
+        <span id="status-text">Cargando...</span>
+    </div>
+
     <div id="home" class="screen active">
-        <h1 style="text-align:center; margin-top: 30px; font-size: 24px;">Dr. Peinado</h1>
-        <p style="text-align:center; color: var(--secondary); margin-bottom: 30px; font-size: 14px;">Control de Asistencia</p>
-        
+        <h1 style="text-align:center; margin-top: 40px; font-size: 24px;">Dr. Peinado</h1>
+        <p style="text-align:center; color: var(--secondary); margin-bottom: 30px; font-size: 14px;">Asistencia Inteligente</p>
         <div class="menu-grid">
             <button class="menu-item" onclick="navegar('escuelas')"><span>🏫</span>Escuelas</button>
             <button class="menu-item" onclick="navegar('grupos')"><span>👥</span>Grupos</button>
@@ -97,7 +84,7 @@
             <button class="btn" style="background:var(--success)" onclick="guardarGrupo()">Crear Grupo</button>
         </div>
         <input type="file" id="inputExcel" style="display:none" accept=".xlsx, .xls" onchange="leerExcel(event)">
-        <div class="card"><h3>Grupos Activos</h3><div id="listaGrupos"></div></div>
+        <div class="card"><h3>Grupos Activos</h3><div id="listaGroups"></div></div>
     </div>
 
     <div id="asistencia" class="screen">
@@ -117,7 +104,7 @@
         </div>
     </div>
 
-    <div id="reportes" class="screen" style="max-width:100%">
+    <div id="reportes" class="screen">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div class="card">
             <h3>Reportes</h3>
@@ -132,10 +119,7 @@
             <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Selecciona grupo y fechas.</div>
             <div id="reporte-tabla-cont" style="display:none">
                 <div class="table-container">
-                    <table id="tabla-datos">
-                        <thead id="head-reporte"></thead>
-                        <tbody id="body-reporte"></tbody>
-                    </table>
+                    <table id="tabla-datos"><thead id="head-reporte"></thead><tbody id="body-reporte"></tbody></table>
                 </div>
                 <button class="btn" style="background:var(--warning)" onclick="exportarExcelAF()">Exportar Excel (A/F) 📥</button>
             </div>
@@ -143,7 +127,7 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN FIREBASE
+        // CONFIGURACIÓN CON PERSISTENCIA
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
             authDomain: "listasasistencia-3a3ca.firebaseapp.com",
@@ -153,8 +137,23 @@
             messagingSenderId: "892289957745",
             appId: "1:892289957745:web:3a1b93b635bcc9db08c0d0"
         };
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        // Monitorear Conexión
+        const connectedRef = db.ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            const dot = document.getElementById('dot');
+            const txt = document.getElementById('status-text');
+            if (snap.val() === true) {
+                dot.style.background = "var(--success)";
+                txt.innerText = "En línea";
+            } else {
+                dot.style.background = "var(--danger)";
+                txt.innerText = "Sin conexión (Local)";
+            }
+        });
 
         let todosGrupos = {};
         let listaAlumnosActual = [];
@@ -162,18 +161,9 @@
         let grupoIdGlobal = "";
         let sessionIdActual = "";
 
-        // NAVEGACIÓN Y RESET
         function navegar(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            if (id === 'home') {
-                document.querySelectorAll('input').forEach(i => i.value = "");
-                document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-                indexAlu = 0; listaAlumnosActual = []; grupoIdGlobal = "";
-                document.getElementById('asistencia-seleccion').style.display = 'block';
-                document.getElementById('asistencia-flujo').style.display = 'none';
-                document.getElementById('reporte-tabla-cont').style.display = 'none';
-                document.getElementById('reporte-vacio').style.display = 'block';
-            }
+            if (id === 'home') resetearApp();
             if (id === 'reportes') {
                 const hoy = new Date().toISOString().split('T')[0];
                 document.getElementById('fecha-fin').value = hoy;
@@ -184,12 +174,20 @@
             window.scrollTo(0,0);
         }
 
-        // LÓGICA DE NEGOCIO (IGUAL A LA ANTERIOR)
+        function resetearApp() {
+            document.querySelectorAll('input').forEach(i => i.value = "");
+            document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+            indexAlu = 0; listaAlumnosActual = [];
+            document.getElementById('asistencia-seleccion').style.display='block';
+            document.getElementById('asistencia-flujo').style.display='none';
+            document.getElementById('reporte-tabla-cont').style.display='none';
+            document.getElementById('reporte-vacio').style.display='block';
+        }
+
         function filtrarGrupos(idEsc, idGrup) {
             const escId = document.getElementById(idEsc).value;
             const selG = document.getElementById(idGrup);
             selG.innerHTML = '<option value="">-- Grupo --</option>';
-            if(!escId) return;
             Object.keys(todosGrupos).forEach(k => {
                 if(todosGrupos[k].escuelaId === escId) selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`;
             });
@@ -240,7 +238,7 @@
             if(indexAlu < listaAlumnosActual.length) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
             } else {
-                alert("Listo"); navegar('home');
+                alert("Sesión finalizada"); navegar('home');
             }
         }
 
@@ -269,7 +267,7 @@
                 cont.style.display='block'; vacio.style.display='none';
                 let headHtml = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(sId => {
-                    headHtml += `<th>${sId.substring(8, 10)}/${sId.substring(5, 7)}<br>${sId.substring(11, 13)}:${sId.substring(13, 15)}</th>`;
+                    headHtml += `<th>${sId.substring(8,10)}/${sId.substring(5,7)}<br>${sId.substring(11,13)}:${sId.substring(13,15)}</th>`;
                 });
                 headHtml += `</tr>`;
                 document.getElementById('head-reporte').innerHTML = headHtml;
@@ -292,13 +290,13 @@
         }
 
         function exportarExcelAF() {
-            const tabla = document.getElementById("tabla-datos");
-            const clon = tabla.cloneNode(true);
+            const t = document.getElementById("tabla-datos");
+            const clon = t.cloneNode(true);
             clon.querySelectorAll('td').forEach(td => { if(td.hasAttribute('data-export')) td.innerText = td.getAttribute('data-export'); });
             XLSX.writeFile(XLSX.utils.table_to_book(clon), "Asistencia_DrPeinado.xlsx");
         }
 
-        // SYNC FIREBASE
+        // SYNC
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
@@ -312,7 +310,7 @@
 
         db.ref('grupos').on('value', snap => {
             todosGrupos = snap.val() || {};
-            const list = document.getElementById('listaGrupos'); if(list) list.innerHTML = "";
+            const list = document.getElementById('listaGroups'); if(list) list.innerHTML = "";
             Object.keys(todosGrupos).forEach(k => {
                 if(list) list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee"><strong>${todosGrupos[k].nombreGrupo}</strong> 
                 <span onclick="db.ref('grupos/${k}').remove()" style="float:right; margin-left:15px">🗑️</span>
