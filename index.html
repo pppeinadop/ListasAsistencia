@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Asistencia">
-    
     <title>Asistencia - Dr. Peinado</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -14,9 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
-        :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --danger: #FF3B30; --success: #34C759; }
+        :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --danger: #FF3B30; --success: #34C759; --warning: #FF9500; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; color: var(--text); }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; color: var(--text); }
         
         .screen { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.2s; }
         .active { display: block; }
@@ -29,18 +27,17 @@
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
         .menu-item { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: none; text-align: center; }
         
-        /* Estilos específicos Asistencia */
-        .alumno-card { text-align: center; padding: 40px 20px; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
+        /* Asistencia */
+        .alumno-card { text-align: center; padding: 40px 20px; min-height: 300px; display: flex; flex-direction: column; justify-content: center; }
         .nombre-alumno { font-size: 32px; font-weight: 800; margin-bottom: 30px; color: var(--primary); }
         .asistencia-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .btn-check { padding: 25px; border-radius: 20px; border: none; color: white; font-size: 24px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
-        .btn-check:active { transform: scale(0.9); }
+        .btn-check { padding: 25px; border-radius: 20px; border: none; color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
         .si { background: var(--success); }
         .no { background: var(--danger); }
         
         .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F2F2F7; }
         .info { flex: 1; }
-        .actions { display: flex; gap: 15px; font-size: 20px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -48,14 +45,13 @@
     <div id="home" class="screen active">
         <header style="text-align:center; margin: 30px 0;">
             <h1 style="font-size: 28px; margin-bottom: 5px;">Dr. Peinado</h1>
-            <p style="color: var(--secondary); margin: 0;">Sistema Médico Docente</p>
+            <p style="color: var(--secondary); margin: 0;">Panel de Control</p>
         </header>
         <div class="menu-grid">
             <button class="card menu-item" onclick="navegar('escuelas')"><span style="font-size:40px">🏫</span><br>Escuelas</button>
             <button class="card menu-item" onclick="navegar('grupos')"><span style="font-size:40px">👥</span><br>Grupos</button>
-            <button class="card menu-item" style="grid-column: span 2; aspect-ratio: auto; padding: 30px;" onclick="navegar('asistencia')">
-                <span style="font-size:40px">⏱️</span><br>PASAR ASISTENCIA
-            </button>
+            <button class="card menu-item" onclick="navegar('asistencia')"><span style="font-size:40px">⏱️</span><br>Asistencia</button>
+            <button class="card menu-item" onclick="navegar('reportes')"><span style="font-size:40px">📊</span><br>Reportes</button>
         </div>
     </div>
 
@@ -63,10 +59,9 @@
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
         <div class="card">
             <h3>Nueva Escuela</h3>
-            <input type="hidden" id="keyEscuela">
-            <input type="text" id="nombreEscuela" placeholder="Nombre de Escuela" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-            <input type="text" id="apodoEscuela" placeholder="Siglas (Ej. UACH)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-            <input type="file" id="logoEscuela" accept="image/*" style="margin-bottom:10px">
+            <input type="text" id="nombreEscuela" placeholder="Nombre completo">
+            <input type="text" id="apodoEscuela" placeholder="Siglas (UACH, etc)">
+            <input type="file" id="logoEscuela" accept="image/*">
             <button class="btn-save" onclick="guardarEscuela()">Guardar</button>
         </div>
         <div class="card"><h3>Registradas</h3><div id="listaEscuelas"></div></div>
@@ -76,8 +71,8 @@
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
         <div class="card">
             <h3>Nuevo Grupo</h3>
-            <select id="selectEscuelaGrupo" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;"></select>
-            <input type="text" id="nombreGrupo" placeholder="Nombre del Grupo" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
+            <select id="selectEscuelaGrupo"></select>
+            <input type="text" id="nombreGrupo" placeholder="Nombre del Grupo">
             <button class="btn-save" style="background:var(--success)" onclick="guardarGrupo()">Crear Grupo</button>
         </div>
         <input type="file" id="inputExcel" style="display:none" accept=".xlsx, .xls" onchange="leerExcel(event)">
@@ -86,35 +81,37 @@
 
     <div id="asistencia" class="screen">
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
-        
         <div id="asistencia-seleccion" class="card">
-            <h3>Paso de Lista</h3>
-            <label>1. Selecciona Escuela</label>
-            <select id="asis-escuela" onchange="filtrarGruposAsis()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
-                <option value="">-- Elige Escuela --</option>
-            </select>
-            
-            <label>2. Selecciona Grupo</label>
-            <select id="asis-grupo" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
-                <option value="">-- Elige Grupo --</option>
-            </select>
-            
+            <h3>Pasar Lista</h3>
+            <select id="asis-escuela" onchange="filtrarGrupos('asis-escuela', 'asis-grupo')"><option value="">Selecciona Escuela</option></select>
+            <select id="asis-grupo"><option value="">Selecciona Grupo</option></select>
             <button class="btn-save" onclick="iniciarPasarLista()">Comenzar</button>
         </div>
-
         <div id="asistencia-flujo" class="card alumno-card" style="display:none">
-            <small id="progreso-asis" style="color:var(--secondary); font-weight:bold"></small>
-            <div id="nombre-display" class="nombre-alumno">Cargando...</div>
+            <small id="progreso-asis" style="color:var(--secondary)"></small>
+            <div id="nombre-display" class="nombre-alumno"></div>
             <div class="asistencia-botones">
-                <button class="btn-check no" onclick="registrarAsis(false)">FALTA</button>
-                <button class="btn-check si" onclick="registrarAsis(true)">PRESENTE</button>
+                <button class="btn-check no" onclick="registrarAsis(false)">✖</button>
+                <button class="btn-check si" onclick="registrarAsis(true)">✔</button>
             </div>
-            <button class="back-btn" style="margin-top:30px; color:gray" onclick="cancelarAsis()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="reportes" class="screen">
+        <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
+        <div class="card">
+            <h3>Exportar Reporte</h3>
+            <label>1. Escuela</label>
+            <select id="rep-escuela" onchange="filtrarGrupos('rep-escuela', 'rep-grupo')"><option value="">Selecciona Escuela</option></select>
+            <label>2. Grupo</label>
+            <select id="rep-grupo"><option value="">Selecciona Grupo</option></select>
+            <label>3. Fecha</label>
+            <input type="date" id="rep-fecha">
+            <button class="btn-save" style="background:var(--warning)" onclick="exportarExcel()">Descargar Excel 📥</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
             authDomain: "listasasistencia-3a3ca.firebaseapp.com",
@@ -127,135 +124,138 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let todosLosGrupos = {};
-        let alumnosActuales = [];
-        let indiceAlumno = 0;
-        let grupoIdSeleccionado = "";
+        let todosGrupos = {};
+        let alumnosLista = [];
+        let indexAlu = 0;
+        let gIdActual = "";
 
         function navegar(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            if(id === 'asistencia') cancelarAsis();
+            // Reset de fecha hoy para reportes
+            if(id === 'reportes') document.getElementById('rep-fecha').valueAsDate = new Date();
         }
 
-        // --- ESCUELAS Y GRUPOS (LÓGICA EXISTENTE) ---
+        // --- GENERAL ---
+        function filtrarGrupos(idEsc, idGrup) {
+            const escId = document.getElementById(idEsc).value;
+            const selG = document.getElementById(idGrup);
+            selG.innerHTML = '<option value="">Selecciona Grupo</option>';
+            Object.keys(todosGrupos).forEach(k => {
+                if(todosGrupos[k].escuelaId === escId) selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`;
+            });
+        }
+
+        // --- ACCIONES ESCUELAS/GRUPOS ---
         function guardarEscuela() {
-            const nom = document.getElementById('nombreEscuela').value;
-            const apo = document.getElementById('apodoEscuela').value;
-            const file = document.getElementById('logoEscuela').files[0];
-            if(!nom || !apo) return alert("Llena los campos");
-            if(file) {
-                const reader = new FileReader();
-                reader.onloadend = () => db.ref('escuelas').push({ nombre: nom, apodo: apo, logo: reader.result });
-                reader.readAsDataURL(file);
-            } else { db.ref('escuelas').push({ nombre: nom, apodo: apo }); }
-            alert("Guardado");
+            const n = document.getElementById('nombreEscuela').value;
+            const a = document.getElementById('apodoEscuela').value;
+            if(!n || !a) return alert("Faltan datos");
+            db.ref('escuelas').push({ nombre: n, apodo: a });
+            alert("Escuela guardada");
         }
 
         function guardarGrupo() {
-            const escId = document.getElementById('selectEscuelaGrupo').value;
-            const escTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
-            const nomG = document.getElementById('nombreGrupo').value;
-            if(!escId || !nomG) return alert("Datos incompletos");
-            db.ref('grupos').push({ escuelaId: escId, escuelaTxt: escTxt, nombreGrupo: nomG });
+            const eId = document.getElementById('selectEscuelaGrupo').value;
+            const eTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
+            const nG = document.getElementById('nombreGrupo').value;
+            if(!eId || !nG) return alert("Faltan datos");
+            db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG });
             alert("Grupo creado");
         }
 
-        function leerExcel(event) {
-            const file = event.target.files[0];
+        function leerExcel(e) {
+            const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const workbook = XLSX.read(e.target.result, { type: 'binary' });
-                const rows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[workbook.SheetNames[0]]);
+            reader.onload = (evt) => {
+                const rows = XLSX.utils.sheet_to_row_object_array(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]);
                 rows.forEach(r => {
-                    const n = r.Nombre || r.nombre || r.ALUMNO || r.Alumno;
-                    if(n) db.ref('alumnos/' + grupoIdSeleccionado).push({ nombre: n });
+                    const nom = r.Nombre || r.nombre || r.ALUMNO;
+                    if(nom) db.ref('alumnos/'+gIdActual).push({ nombre: nom });
                 });
-                alert("Importados!");
+                alert("Importación exitosa");
             };
             reader.readAsBinaryString(file);
         }
 
-        // --- LÓGICA DE ASISTENCIA (NUEVA) ---
-        function filtrarGruposAsis() {
-            const escId = document.getElementById('asis-escuela').value;
-            const selectG = document.getElementById('asis-grupo');
-            selectG.innerHTML = '<option value="">-- Elige Grupo --</option>';
-            Object.keys(todosLosGrupos).forEach(k => {
-                if(todosLosGrupos[k].escuelaId === escId) {
-                    selectG.innerHTML += `<option value="${k}">${todosLosGrupos[k].nombreGrupo}</option>`;
-                }
-            });
-        }
-
+        // --- FLUJO ASISTENCIA ---
         function iniciarPasarLista() {
-            grupoIdSeleccionado = document.getElementById('asis-grupo').value;
-            if(!grupoIdSeleccionado) return alert("Selecciona un grupo");
-
-            db.ref('alumnos/' + grupoIdSeleccionado).once('value', snap => {
-                const data = snap.val();
-                if(!data) return alert("Este grupo no tiene alumnos. Impórtalos en la sección de Grupos.");
-                
-                alumnosActuales = Object.keys(data).map(k => ({ id: k, nombre: data[k].nombre }));
-                indiceAlumno = 0;
-                document.getElementById('asistencia-seleccion').style.display = 'none';
-                document.getElementById('asistencia-flujo').style.display = 'flex';
-                mostrarAlumno();
+            gIdActual = document.getElementById('asis-grupo').value;
+            if(!gIdActual) return alert("Selecciona grupo");
+            db.ref('alumnos/'+gIdActual).once('value', snap => {
+                const d = snap.val();
+                if(!d) return alert("Sin alumnos");
+                alumnosLista = Object.keys(d).map(k => ({id: k, nombre: d[k].nombre}));
+                indexAlu = 0;
+                document.getElementById('asistencia-seleccion').style.display='none';
+                document.getElementById('asistencia-flujo').style.display='flex';
+                actualizarAlu();
             });
         }
 
-        function mostrarAlumno() {
-            if(indiceAlumno < alumnosActuales.length) {
-                document.getElementById('progreso-asis').innerText = `Alumno ${indiceAlumno + 1} de ${alumnosActuales.length}`;
-                document.getElementById('nombre-display').innerText = alumnosActuales[indiceAlumno].nombre;
+        function actualizarAlu() {
+            if(indexAlu < alumnosLista.length) {
+                document.getElementById('progreso-asis').innerText = `Alumno ${indexAlu+1}/${alumnosLista.length}`;
+                document.getElementById('nombre-display').innerText = alumnosLista[indexAlu].nombre;
             } else {
-                alert("¡Pase de lista terminado!");
-                cancelarAsis();
+                alert("Lista finalizada");
+                navegar('home');
+                document.getElementById('asistencia-seleccion').style.display='block';
+                document.getElementById('asistencia-flujo').style.display='none';
             }
         }
 
-        function registrarAsis(estado) {
-            const alumno = alumnosActuales[indiceAlumno];
-            const hoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
-            
-            db.ref(`asistencias/${grupoIdSeleccionado}/${hoy}/${alumno.id}`).set({
-                nombre: alumno.nombre,
-                asistio: estado,
-                hora: new Date().toLocaleTimeString()
+        function registrarAsis(st) {
+            const hoy = new Date().toISOString().split('T')[0];
+            db.ref(`asistencias/${gIdActual}/${hoy}/${alumnosLista[indexAlu].id}`).set({
+                nombre: alumnosLista[indexAlu].nombre,
+                presente: st
             });
-
-            indiceAlumno++;
-            mostrarAlumno();
+            indexAlu++;
+            actualizarAlu();
         }
 
-        function cancelarAsis() {
-            document.getElementById('asistencia-seleccion').style.display = 'block';
-            document.getElementById('asistencia-flujo').style.display = 'none';
+        // --- REPORTES (EXCEL) ---
+        function exportarExcel() {
+            const gId = document.getElementById('rep-grupo').value;
+            const fecha = document.getElementById('rep-fecha').value;
+            if(!gId || !fecha) return alert("Selecciona grupo y fecha");
+
+            db.ref(`asistencias/${gId}/${fecha}`).once('value', snap => {
+                const data = snap.val();
+                if(!data) return alert("No hay datos para esta fecha");
+
+                const rows = Object.keys(data).map(k => ({
+                    Nombre: data[k].nombre,
+                    Asistencia: data[k].presente ? "PRESENTE" : "FALTA"
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(rows);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Asistencia");
+                XLSX.writeFile(wb, `Asistencia_${fecha}.xlsx`);
+            });
         }
 
-        // --- SINCRONIZACIÓN ---
+        // --- SYNC ---
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
-            const selects = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela')];
-            const listE = document.getElementById('listaEscuelas');
-            listE.innerHTML = "";
-            selects.forEach(s => s.innerHTML = '<option value="">-- Selecciona Escuela --</option>');
+            const selects = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
+            const list = document.getElementById('listaEscuelas'); list.innerHTML = "";
+            selects.forEach(s => s.innerHTML = '<option value="">Selecciona Escuela</option>');
             if(d) Object.keys(d).forEach(k => {
-                listE.innerHTML += `<div class="item-row"><div class="info"><strong>${d[k].apodo}</strong></div><div class="actions"><span onclick="db.ref('escuelas/${k}').remove()">🗑️</span></div></div>`;
+                list.innerHTML += `<div class="item-row"><strong>${d[k].apodo}</strong> <span onclick="db.ref('escuelas/${k}').remove()">🗑️</span></div>`;
                 selects.forEach(s => s.innerHTML += `<option value="${k}">${d[k].apodo}</option>`);
             });
         });
 
         db.ref('grupos').on('value', snap => {
-            todosLosGrupos = snap.val() || {};
-            const listG = document.getElementById('listaGrupos');
-            listG.innerHTML = "";
-            Object.keys(todosLosGrupos).forEach(k => {
-                const g = todosLosGrupos[k];
-                listG.innerHTML += `<div class="item-row"><div class="info"><strong>${g.nombreGrupo}</strong><small>${g.escuelaTxt}</small></div><div class="actions"><span onclick="grupoIdSeleccionado='${k}';document.getElementById('inputExcel').click()">📥</span><span onclick="db.ref('grupos/${k}').remove()">🗑️</span></div></div>`;
+            todosGrupos = snap.val() || {};
+            const list = document.getElementById('listaGrupos'); list.innerHTML = "";
+            Object.keys(todosGrupos).forEach(k => {
+                list.innerHTML += `<div class="item-row"><div class="info"><strong>${todosGrupos[k].nombreGrupo}</strong></div><span onclick="gIdActual='${k}';document.getElementById('inputExcel').click()">📥</span> <span onclick="db.ref('grupos/${k}').remove()">🗑️</span></div>`;
             });
         });
-
     </script>
 </body>
 </html>
