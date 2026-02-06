@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Asistencia Dr. Peinado - Fix Excel</title>
+    <title>Asistencia Dr. Peinado - Final</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -32,7 +32,6 @@
         td { padding: 10px; font-size: 13px; border: 1px solid #eee; text-align: center; }
         .name-col { text-align: left; font-weight: bold; min-width: 180px; background: white; position: sticky; left: 0; z-index: 3; border-right: 2px solid #eee; }
         
-        /* Círculos visuales en pantalla */
         .dot { height: 14px; width: 14px; border-radius: 50%; display: inline-block; }
         .dot-si { background-color: var(--success); }
         .dot-no { background-color: var(--danger); }
@@ -45,7 +44,7 @@
 
     <div id="home" class="screen active">
         <h1 style="text-align:center; margin-top: 40px;">Dr. Peinado</h1>
-        <p style="text-align:center; color: var(--secondary); margin-bottom: 40px;">Sistema de Asistencia</p>
+        <p style="text-align:center; color: var(--secondary); margin-bottom: 40px;">Control Escolar</p>
         <div class="menu-grid">
             <button class="menu-item" onclick="navegar('escuelas')"><span style="font-size:40px">🏫</span>Escuelas</button>
             <button class="menu-item" onclick="navegar('grupos')"><span style="font-size:40px">👥</span>Grupos</button>
@@ -80,7 +79,7 @@
     <div id="asistencia" class="screen">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div id="asistencia-seleccion" class="card">
-            <h3>Iniciar Pase de Lista</h3>
+            <h3>Pasar Lista</h3>
             <select id="asis-escuela" onchange="filtrarGrupos('asis-escuela', 'asis-grupo')"></select>
             <select id="asis-grupo"></select>
             <button class="btn" style="background:var(--primary)" onclick="iniciarPasarLista()">Comenzar</button>
@@ -97,7 +96,7 @@
     <div id="reportes" class="screen" style="max-width:100%">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div class="card">
-            <h3>Reporte Multifuncional</h3>
+            <h3>Reportes</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
                 <select id="rep-escuela" onchange="filtrarGrupos('rep-escuela', 'rep-grupo')"></select>
                 <select id="rep-grupo" onchange="consultarReporte()"></select>
@@ -106,7 +105,6 @@
                 <div><label>Desde:</label><input type="date" id="fecha-inicio" onchange="consultarReporte()"></div>
                 <div><label>Hasta:</label><input type="date" id="fecha-fin" onchange="consultarReporte()"></div>
             </div>
-            
             <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Selecciona grupo y fechas.</div>
             <div id="reporte-tabla-cont" style="display:none">
                 <div class="table-container">
@@ -115,7 +113,7 @@
                         <tbody id="body-reporte"></tbody>
                     </table>
                 </div>
-                <button class="btn" style="background:var(--warning)" onclick="exportarExcelFull()">Exportar Excel 📥</button>
+                <button class="btn" style="background:var(--warning)" onclick="exportarExcelAF()">Exportar Excel (A/F) 📥</button>
             </div>
         </div>
     </div>
@@ -141,7 +139,7 @@
 
         function navegar(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            if (id === 'home') resetearTodo();
+            if (id === 'home') resetearApp();
             if (id === 'reportes') {
                 const hoy = new Date().toISOString().split('T')[0];
                 document.getElementById('fecha-fin').value = hoy;
@@ -152,19 +150,16 @@
             window.scrollTo(0,0);
         }
 
-        function resetearTodo() {
+        function resetearApp() {
             document.querySelectorAll('input').forEach(i => i.value = "");
             document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-            indexAlu = 0;
-            listaAlumnosActual = [];
-            grupoIdGlobal = "";
+            indexAlu = 0; listaAlumnosActual = []; grupoIdGlobal = "";
             document.getElementById('asistencia-seleccion').style.display = 'block';
             document.getElementById('asistencia-flujo').style.display = 'none';
             document.getElementById('reporte-tabla-cont').style.display = 'none';
             document.getElementById('reporte-vacio').style.display = 'block';
         }
 
-        // --- LÓGICA GRUPOS ---
         function filtrarGrupos(idEsc, idGrup) {
             const escId = document.getElementById(idEsc).value;
             const selG = document.getElementById(idGrup);
@@ -197,20 +192,18 @@
                     const nom = r.Nombre || r.nombre || r.ALUMNO;
                     if(nom) db.ref('alumnos/'+grupoIdGlobal).push({ nombre: nom });
                 });
-                alert("Importados"); navegar('home');
+                alert("Alumnos Importados"); navegar('home');
             };
             reader.readAsBinaryString(file);
         }
 
-        // --- ASISTENCIA ---
         function iniciarPasarLista() {
             grupoIdGlobal = document.getElementById('asis-grupo').value;
-            if(!grupoIdGlobal) return;
+            if(!grupoIdGlobal) return alert("Selecciona grupo");
             const ahora = new Date();
             sessionIdActual = ahora.toISOString().split('T')[0] + "_" + ahora.getHours().toString().padStart(2,'0') + ahora.getMinutes().toString().padStart(2,'0');
             db.ref('alumnos/'+grupoIdGlobal).once('value', snap => {
-                const d = snap.val();
-                if(!d) return alert("Sin alumnos");
+                const d = snap.val(); if(!d) return alert("Sin alumnos");
                 listaAlumnosActual = Object.keys(d).map(k => ({id: k, nombre: d[k].nombre}));
                 document.getElementById('asistencia-seleccion').style.display='none';
                 document.getElementById('asistencia-flujo').style.display='block';
@@ -222,20 +215,17 @@
             if(indexAlu < listaAlumnosActual.length) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
             } else {
-                alert("Guardado."); navegar('home');
+                alert("Sesión finalizada"); navegar('home');
             }
         }
 
         function registrarAsis(st) {
             db.ref(`asistencias/${grupoIdGlobal}/${sessionIdActual}/${listaAlumnosActual[indexAlu].id}`).set({
-                nombre: listaAlumnosActual[indexAlu].nombre,
-                presente: st
+                nombre: listaAlumnosActual[indexAlu].nombre, presente: st
             });
-            indexAlu++;
-            mostrarProximoAlu();
+            indexAlu++; mostrarProximoAlu();
         }
 
-        // --- REPORTES ---
         function consultarReporte() {
             const gId = document.getElementById('rep-grupo').value;
             const inicio = document.getElementById('fecha-inicio').value;
@@ -252,12 +242,9 @@
                 if(sesiones.length === 0) { cont.style.display='none'; vacio.style.display='block'; return; }
 
                 cont.style.display='block'; vacio.style.display='none';
-                
                 let headHtml = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(sId => {
-                    const f = sId.substring(8, 10) + "/" + sId.substring(5, 7);
-                    const h = sId.substring(11, 13) + ":" + sId.substring(13, 15);
-                    headHtml += `<th>${f} ${h}</th>`;
+                    headHtml += `<th>${sId.substring(8, 10)}/${sId.substring(5, 7)}<br>${sId.substring(11, 13)}:${sId.substring(13, 15)}</th>`;
                 });
                 headHtml += `</tr>`;
                 document.getElementById('head-reporte').innerHTML = headHtml;
@@ -269,10 +256,9 @@
                         bodyHtml += `<tr><td class="name-col">${alus[aId].nombre}</td>`;
                         sesiones.forEach(sId => {
                             const reg = d[sId][aId];
-                            // Aquí está el truco: data-excel guarda el texto para el Excel
-                            const val = reg ? (reg.presente ? 'ASISTENCIA' : 'FALTA') : '-';
-                            const dot = reg ? (reg.presente ? 'dot-si' : 'dot-no') : '';
-                            bodyHtml += `<td data-excel="${val}">${reg ? `<span class="dot ${dot}"></span>` : '-'}</td>`;
+                            const letra = reg ? (reg.presente ? 'A' : 'F') : '-';
+                            const dotClass = reg ? (reg.presente ? 'dot-si' : 'dot-no') : '';
+                            bodyHtml += `<td data-export="${letra}">${reg ? `<span class="dot ${dotClass}"></span>` : '-'}</td>`;
                         });
                         bodyHtml += `</tr>`;
                     });
@@ -281,25 +267,18 @@
             });
         }
 
-        // --- FUNCIÓN DE EXPORTACIÓN CORREGIDA ---
-        function exportarExcelFull() {
-            // 1. Clonamos la tabla para no arruinar la vista del iPad
+        function exportarExcelAF() {
             const tablaOriginal = document.getElementById("tabla-datos");
             const clon = tablaOriginal.cloneNode(true);
-
-            // 2. Buscamos todas las celdas que tienen círculos y los reemplazamos por texto
             clon.querySelectorAll('td').forEach(td => {
-                if (td.hasAttribute('data-excel')) {
-                    td.innerText = td.getAttribute('data-excel');
+                if (td.hasAttribute('data-export')) {
+                    td.innerText = td.getAttribute('data-export');
                 }
             });
-
-            // 3. Exportamos el clon (que ahora tiene texto "ASISTENCIA" o "FALTA")
             const wb = XLSX.utils.table_to_book(clon);
-            XLSX.writeFile(wb, "Reporte_Asistencia_DrPeinado.xlsx");
+            XLSX.writeFile(wb, "Asistencia_DrPeinado_AF.xlsx");
         }
 
-        // --- SYNC ---
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
