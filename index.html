@@ -11,70 +11,114 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --danger: #FF3B30; --success: #34C759; }
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
-        .screen { display: none; width: 100%; max-width: 500px; }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; color: var(--text); }
+        
+        /* Pantallas */
+        .screen { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.3s; }
         .active { display: block; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Tarjetas y Botones */
+        .card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; color: var(--secondary); }
-        input, select { width: 100%; padding: 12px; border: 1px solid #DDD; border-radius: 12px; font-size: 16px; outline: none; background: white; }
-        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .item-row { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #F2F2F7; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #DDD; border-radius: 12px; font-size: 16px; outline: none; background: white; -webkit-appearance: none; }
+        
+        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        
+        /* Listas */
+        .item-row { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #F2F2F7; }
+        .item-row:last-child { border-bottom: none; }
         .info { flex: 1; }
-        .actions { display: flex; gap: 15px; font-size: 20px; }
-        .actions span { cursor: pointer; }
-        .logo-preview { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; background: #EEE; }
+        .info strong { font-size: 17px; display: block; }
+        .info small { color: var(--secondary); font-size: 13px; }
+        
+        .actions { display: flex; gap: 18px; font-size: 22px; }
+        .actions span { cursor: pointer; transition: transform 0.1s; }
+        .actions span:active { transform: scale(1.2); }
+        
+        .logo-preview { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; background: #EEE; border: 1px solid #F2F2F7; }
+        
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+        .menu-item { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
 
     <div id="home" class="screen active">
-        <header style="text-align:center; margin-bottom:30px;"><h1>Asistencia - Dr. Peinado</h1></header>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; width:100%;">
-            <button class="card" style="border:none; cursor:pointer" onclick="navegar('escuelas')"><span style="font-size:40px">🏫</span><br>Escuelas</button>
-            <button class="card" style="border:none; cursor:pointer" onclick="navegar('grupos')"><span style="font-size:40px">👥</span><br>Grupos</button>
+        <header style="text-align:center; margin: 40px 0;">
+            <h1 style="font-size: 28px; font-weight: 800;">Dr. Peinado</h1>
+            <p style="color: var(--secondary);">Gestión de Asistencia</p>
+        </header>
+        <div class="menu-grid">
+            <button class="card menu-item" onclick="navegar('escuelas')">
+                <span style="font-size:45px; margin-bottom:10px;">🏫</span><br>Escuelas
+            </button>
+            <button class="card menu-item" onclick="navegar('grupos')">
+                <span style="font-size:45px; margin-bottom:10px;">👥</span><br>Grupos
+            </button>
         </div>
     </div>
 
     <div id="escuelas" class="screen">
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
         <div class="card">
-            <h3 id="tituloEscuela">Nueva Escuela</h3>
+            <h3 id="tituloEscuela" style="margin-top:0">Nueva Escuela</h3>
             <input type="hidden" id="keyEscuela">
-            <div class="form-group"><label>Nombre Completo</label><input type="text" id="nombreEscuela"></div>
-            <div class="form-group"><label>Apodo / Siglas</label><input type="text" id="apodoEscuela"></div>
-            <div class="form-group"><label>Logo</label><input type="file" id="logoEscuela" accept="image/*"></div>
+            <div class="form-group">
+                <label>Nombre de la Institución</label>
+                <input type="text" id="nombreEscuela" placeholder="Ej. Universidad de Chihuahua">
+            </div>
+            <div class="form-group">
+                <label>Siglas / Apodo</label>
+                <input type="text" id="apodoEscuela" placeholder="Ej. UACH">
+            </div>
+            <div class="form-group">
+                <label>Logotipo</label>
+                <input type="file" id="logoEscuela" accept="image/*">
+            </div>
             <button class="btn-save" id="btnGuardarEsc" onclick="guardarEscuela()">Guardar en la Nube</button>
-            <button id="btnCancEsc" style="display:none; width:100%; background:none; border:none; color:red; margin-top:10px" onclick="limpiarEscuela()">Cancelar</button>
+            <button id="btnCancEsc" style="display:none; width:100%; background:none; border:none; color:var(--danger); margin-top:12px; font-weight:bold;" onclick="limpiarEscuela()">Cancelar Edición</button>
         </div>
-        <div class="card"><h3>Registradas</h3><div id="listaEscuelas"></div></div>
+        <div class="card">
+            <h3 style="margin-top:0">Escuelas Registradas</h3>
+            <div id="listaEscuelas">Cargando...</div>
+        </div>
     </div>
 
     <div id="grupos" class="screen">
         <button class="back-btn" onclick="navegar('home')"> ❮ Inicio</button>
         <div class="card">
-            <h3 id="tituloGrupo">Nuevo Grupo</h3>
+            <h3 id="tituloGrupo" style="margin-top:0">Nuevo Grupo</h3>
             <input type="hidden" id="keyGrupo">
             <div class="form-group">
-                <label>Seleccionar Escuela</label>
-                <select id="selectEscuelaGrupo"><option value="">Cargando...</option></select>
+                <label>Asignar a Escuela</label>
+                <select id="selectEscuelaGrupo"><option value="">Cargando escuelas...</option></select>
             </div>
             <div class="form-group">
-                <label>Nombre del Grupo</label>
-                <input type="text" id="nombreGrupo">
+                <label>Nombre del Grupo / Materia</label>
+                <input type="text" id="nombreGrupo" placeholder="Ej. Anatomía Clínica - 4B">
             </div>
             <button class="btn-save" id="btnGuardarGrup" style="background: var(--success)" onclick="guardarGrupo()">Crear Grupo</button>
-            <button id="btnCancGrup" style="display:none; width:100%; background:none; border:none; color:red; margin-top:10px" onclick="limpiarGrupo()">Cancelar</button>
+            <button id="btnCancGrup" style="display:none; width:100%; background:none; border:none; color:var(--danger); margin-top:12px; font-weight:bold;" onclick="limpiarGrupo()">Cancelar</button>
         </div>
-        <div class="card"><h3>Mis Grupos</h3><div id="listaGrupos"></div></div>
+        
+        <input type="file" id="inputExcel" style="display:none" accept=".xlsx, .xls" onchange="leerExcel(event)">
+        
+        <div class="card">
+            <h3 style="margin-top:0">Mis Grupos</h3>
+            <div id="listaGrupos">No hay grupos creados.</div>
+        </div>
     </div>
 
     <script>
+        // CONFIGURACIÓN OFICIAL
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
             authDomain: "listasasistencia-3a3ca.firebaseapp.com",
@@ -87,6 +131,7 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let grupoIdActivo = null;
 
         function navegar(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -96,14 +141,13 @@
 
         // --- LÓGICA ESCUELAS ---
         let logoTemp = null;
-
         function guardarEscuela() {
             const nombre = document.getElementById('nombreEscuela').value;
             const apodo = document.getElementById('apodoEscuela').value;
             const key = document.getElementById('keyEscuela').value;
             const file = document.getElementById('logoEscuela').files[0];
 
-            if (!nombre || !apodo) return alert("Faltan datos");
+            if (!nombre || !apodo) return alert("Por favor llena el nombre y el apodo.");
 
             if (file) {
                 const reader = new FileReader();
@@ -117,9 +161,9 @@
         function subirEscuela(nombre, apodo, logo, key) {
             const data = { nombre, apodo, logo };
             if (key) {
-                db.ref('escuelas/' + key).update(data).then(() => { alert("Actualizado"); limpiarEscuela(); });
+                db.ref('escuelas/' + key).update(data).then(() => { alert("Escuela actualizada"); limpiarEscuela(); });
             } else {
-                db.ref('escuelas').push(data).then(() => { alert("Guardado"); limpiarEscuela(); });
+                db.ref('escuelas').push(data).then(() => { alert("Escuela guardada"); limpiarEscuela(); });
             }
         }
 
@@ -128,7 +172,7 @@
             document.getElementById('nombreEscuela').value = nom;
             document.getElementById('apodoEscuela').value = apo;
             logoTemp = log;
-            document.getElementById('tituloEscuela').innerText = "Editando Escuela";
+            document.getElementById('tituloEscuela').innerText = "Editar Escuela";
             document.getElementById('btnGuardarEsc').innerText = "Actualizar Cambios";
             document.getElementById('btnCancEsc').style.display = "block";
             window.scrollTo(0,0);
@@ -148,11 +192,12 @@
         // --- LÓGICA GRUPOS ---
         function guardarGrupo() {
             const escId = document.getElementById('selectEscuelaGrupo').value;
-            const escTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
+            const selectEl = document.getElementById('selectEscuelaGrupo');
+            const escTxt = selectEl.options[selectEl.selectedIndex].text;
             const nomG = document.getElementById('nombreGrupo').value;
             const key = document.getElementById('keyGrupo').value;
 
-            if (!escId || !nomG) return alert("Faltan datos");
+            if (!escId || !nomG) return alert("Selecciona una escuela y escribe el nombre del grupo.");
 
             const data = { escuelaId: escId, escuelaTxt: escTxt, nombreGrupo: nomG };
             if (key) {
@@ -166,7 +211,7 @@
             document.getElementById('keyGrupo').value = key;
             document.getElementById('selectEscuelaGrupo').value = idEsc;
             document.getElementById('nombreGrupo').value = nombre;
-            document.getElementById('tituloGrupo').innerText = "Editando Grupo";
+            document.getElementById('tituloGrupo').innerText = "Editar Grupo";
             document.getElementById('btnGuardarGrup').innerText = "Actualizar Grupo";
             document.getElementById('btnCancGrup').style.display = "block";
             window.scrollTo(0,0);
@@ -180,27 +225,56 @@
             document.getElementById('btnCancGrup').style.display = "none";
         }
 
-        // --- CARGA REAL ---
+        // --- IMPORTACIÓN EXCEL ---
+        function abrirImportar(key) {
+            grupoIdActivo = key;
+            document.getElementById('inputExcel').click();
+        }
+
+        function leerExcel(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = e.target.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                const hoja = workbook.Sheets[workbook.SheetNames[0]];
+                const filas = XLSX.utils.sheet_to_row_object_array(hoja);
+                
+                let importados = 0;
+                filas.forEach(fila => {
+                    const nombreAlumno = fila.Nombre || fila.nombre || fila.Alumno || fila.ALUMNO;
+                    if(nombreAlumno) {
+                        db.ref('alumnos/' + grupoIdActivo).push({ nombre: nombreAlumno });
+                        importados++;
+                    }
+                });
+                alert("Se importaron " + importados + " alumnos correctamente.");
+                event.target.value = "";
+            };
+            reader.readAsBinaryString(file);
+        }
+
+        // --- SINCRONIZACIÓN EN TIEMPO REAL ---
         db.ref('escuelas').on('value', snap => {
             const datos = snap.val();
             const list = document.getElementById('listaEscuelas');
             const sel = document.getElementById('selectEscuelaGrupo');
-            list.innerHTML = ""; sel.innerHTML = '<option value="">-- Selecciona --</option>';
+            list.innerHTML = ""; sel.innerHTML = '<option value="">-- Elige Escuela --</option>';
             if(datos) {
                 Object.keys(datos).forEach(k => {
                     const e = datos[k];
                     list.innerHTML += `
                         <div class="item-row">
-                            <img src="${e.logo || 'https://via.placeholder.com/45'}" class="logo-preview">
-                            <div class="info"><strong>${e.apodo}</strong><br><small>${e.nombre}</small></div>
+                            <img src="${e.logo || 'https://via.placeholder.com/48'}" class="logo-preview">
+                            <div class="info"><strong>${e.apodo}</strong><small>${e.nombre}</small></div>
                             <div class="actions">
                                 <span onclick="editarEscuela('${k}','${e.nombre}','${e.apodo}','${e.logo}')">✏️</span>
-                                <span onclick="if(confirm('¿Eliminar?')) db.ref('escuelas/${k}').remove()">🗑️</span>
+                                <span onclick="if(confirm('¿Eliminar escuela?')) db.ref('escuelas/${k}').remove()">🗑️</span>
                             </div>
                         </div>`;
                     sel.innerHTML += `<option value="${k}">${e.apodo}</option>`;
                 });
-            }
+            } else { list.innerHTML = "<p style='color:gray'>No hay escuelas.</p>"; }
         });
 
         db.ref('grupos').on('value', snap => {
@@ -212,14 +286,15 @@
                     const g = datos[k];
                     list.innerHTML += `
                         <div class="item-row">
-                            <div class="info"><strong>${g.nombreGrupo}</strong><br><small>${g.escuelaTxt}</small></div>
+                            <div class="info"><strong>${g.nombreGrupo}</strong><small>${g.escuelaTxt}</small></div>
                             <div class="actions">
+                                <span title="Importar Alumnos" onclick="abrirImportar('${k}')">📥</span>
                                 <span onclick="editarGrupo('${k}','${g.escuelaId}','${g.nombreGrupo}')">✏️</span>
-                                <span onclick="if(confirm('¿Eliminar?')) db.ref('grupos/${k}').remove()">🗑️</span>
+                                <span onclick="if(confirm('¿Eliminar grupo?')) db.ref('grupos/${k}').remove()">🗑️</span>
                             </div>
                         </div>`;
                 });
-            }
+            } else { list.innerHTML = "<p style='color:gray'>No hay grupos creados.</p>"; }
         });
     </script>
 </body>
