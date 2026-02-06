@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dr. Peinado - Offline Pro</title>
+    <title>Dr. Peinado - Reporte Pro</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -20,8 +20,8 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* Indicador de Conexión */
-        #status-bar { position: fixed; top: 10px; right: 15px; font-size: 12px; font-weight: bold; z-index: 1000; display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; margin-right: 6px; }
+        #status-bar { position: fixed; top: 10px; right: 15px; font-size: 11px; font-weight: bold; z-index: 1000; display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .status-dot { height: 7px; width: 7px; border-radius: 50%; margin-right: 6px; }
 
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; }
@@ -34,14 +34,47 @@
         .menu-item { padding: 20px 10px; background: white; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
         .menu-item span { font-size: 28px; margin-bottom: 8px; }
 
-        /* Tabla Reporte */
-        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; }
-        table { width: 100%; border-collapse: collapse; background: white; min-width: 600px; }
-        th { background: #f8f8f8; padding: 12px; font-size: 10px; border: 1px solid #eee; position: sticky; top: 0; z-index: 2; }
-        td { padding: 10px; font-size: 13px; border: 1px solid #eee; text-align: center; }
-        .name-col { text-align: left; font-weight: bold; min-width: 160px; background: white; position: sticky; left: 0; z-index: 3; border-right: 2px solid #eee; }
+        /* TABLA CON COLUMNA CONGELADA */
+        .table-container { 
+            overflow-x: auto; 
+            margin-top: 20px; 
+            border-radius: 12px; 
+            border: 1px solid #ddd; 
+            max-height: 60vh; 
+            position: relative;
+        }
+        table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
         
-        .dot { height: 14px; width: 14px; border-radius: 50%; display: inline-block; }
+        th { 
+            background: #f8f8f8; 
+            padding: 12px; 
+            font-size: 10px; 
+            border-bottom: 1px solid #eee; 
+            border-right: 1px solid #eee;
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+        }
+        
+        td { padding: 10px; font-size: 13px; border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0; text-align: center; }
+
+        /* La magia de congelar la columna */
+        .name-col { 
+            text-align: left; 
+            font-weight: bold; 
+            min-width: 150px; 
+            max-width: 200px;
+            background: white !important; 
+            position: sticky; 
+            left: 0; 
+            z-index: 5; 
+            border-right: 2px solid #ddd !important; /* Línea divisoria más fuerte */
+        }
+        
+        /* Asegurar que el encabezado del nombre también se congele arriba y a la izquierda */
+        th.name-col { z-index: 11; background: #f8f8f8 !important; }
+
+        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
         .dot-si { background-color: var(--success); }
         .dot-no { background-color: var(--danger); }
     </style>
@@ -55,7 +88,6 @@
 
     <div id="home" class="screen active">
         <h1 style="text-align:center; margin-top: 40px; font-size: 24px;">Dr. Peinado</h1>
-        <p style="text-align:center; color: var(--secondary); margin-bottom: 30px; font-size: 14px;">Asistencia Inteligente</p>
         <div class="menu-grid">
             <button class="menu-item" onclick="navegar('escuelas')"><span>🏫</span>Escuelas</button>
             <button class="menu-item" onclick="navegar('grupos')"><span>👥</span>Grupos</button>
@@ -104,7 +136,7 @@
         </div>
     </div>
 
-    <div id="reportes" class="screen">
+    <div id="reportes" class="screen" style="max-width: 100%;">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div class="card">
             <h3>Reportes</h3>
@@ -127,7 +159,6 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN CON PERSISTENCIA
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
             authDomain: "listasasistencia-3a3ca.firebaseapp.com",
@@ -141,18 +172,12 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Monitorear Conexión
-        const connectedRef = db.ref(".info/connected");
-        connectedRef.on("value", (snap) => {
+        // Estado de conexión
+        db.ref(".info/connected").on("value", (snap) => {
             const dot = document.getElementById('dot');
             const txt = document.getElementById('status-text');
-            if (snap.val() === true) {
-                dot.style.background = "var(--success)";
-                txt.innerText = "En línea";
-            } else {
-                dot.style.background = "var(--danger)";
-                txt.innerText = "Sin conexión (Local)";
-            }
+            if (snap.val() === true) { dot.style.background = "var(--success)"; txt.innerText = "En línea"; }
+            else { dot.style.background = "var(--danger)"; txt.innerText = "Offline"; }
         });
 
         let todosGrupos = {};
@@ -237,9 +262,7 @@
         function mostrarProximoAlu() {
             if(indexAlu < listaAlumnosActual.length) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
-            } else {
-                alert("Sesión finalizada"); navegar('home');
-            }
+            } else { alert("Sesión finalizada"); navegar('home'); }
         }
 
         function registrarAsis(st) {
@@ -265,6 +288,7 @@
                 if(sesiones.length === 0) { cont.style.display='none'; vacio.style.display='block'; return; }
 
                 cont.style.display='block'; vacio.style.display='none';
+                
                 let headHtml = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(sId => {
                     headHtml += `<th>${sId.substring(8,10)}/${sId.substring(5,7)}<br>${sId.substring(11,13)}:${sId.substring(13,15)}</th>`;
