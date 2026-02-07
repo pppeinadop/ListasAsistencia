@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dr. Peinado - Reporte Pro</title>
+    <title>Dr. Peinado - Reporte Optimizado</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -19,59 +19,26 @@
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Indicador de Conexión */
         #status-bar { position: fixed; top: 10px; right: 15px; font-size: 11px; font-weight: bold; z-index: 1000; display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .status-dot { height: 7px; width: 7px; border-radius: 50%; margin-right: 6px; }
 
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
         
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
         
-        /* Menú Compacto */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; margin: 0 auto; }
         .menu-item { padding: 20px 10px; background: white; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
         .menu-item span { font-size: 28px; margin-bottom: 8px; }
 
-        /* TABLA CON COLUMNA CONGELADA */
-        .table-container { 
-            overflow-x: auto; 
-            margin-top: 20px; 
-            border-radius: 12px; 
-            border: 1px solid #ddd; 
-            max-height: 60vh; 
-            position: relative;
-        }
+        /* TABLA CONGELADA */
+        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; position: relative; }
         table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
-        
-        th { 
-            background: #f8f8f8; 
-            padding: 12px; 
-            font-size: 10px; 
-            border-bottom: 1px solid #eee; 
-            border-right: 1px solid #eee;
-            position: sticky; 
-            top: 0; 
-            z-index: 10; 
-        }
-        
+        th { background: #f8f8f8; padding: 12px; font-size: 10px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; position: sticky; top: 0; z-index: 10; }
         td { padding: 10px; font-size: 13px; border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0; text-align: center; }
-
-        /* La magia de congelar la columna */
-        .name-col { 
-            text-align: left; 
-            font-weight: bold; 
-            min-width: 150px; 
-            max-width: 200px;
-            background: white !important; 
-            position: sticky; 
-            left: 0; 
-            z-index: 5; 
-            border-right: 2px solid #ddd !important; /* Línea divisoria más fuerte */
-        }
-        
-        /* Asegurar que el encabezado del nombre también se congele arriba y a la izquierda */
+        .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white !important; position: sticky; left: 0; z-index: 5; border-right: 2px solid #ddd !important; }
         th.name-col { z-index: 11; background: #f8f8f8 !important; }
 
         .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
@@ -142,13 +109,19 @@
             <h3>Reportes</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
                 <select id="rep-escuela" onchange="filtrarGrupos('rep-escuela', 'rep-grupo')"></select>
-                <select id="rep-grupo" onchange="consultarReporte()"></select>
+                <select id="rep-grupo"></select>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px">
-                <div><label>Desde:</label><input type="date" id="fecha-inicio" onchange="consultarReporte()"></div>
-                <div><label>Hasta:</label><input type="date" id="fecha-fin" onchange="consultarReporte()"></div>
+                <div><label>Desde:</label><input type="date" id="fecha-inicio"></div>
+                <div><label>Hasta:</label><input type="date" id="fecha-fin"></div>
             </div>
-            <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Selecciona grupo y fechas.</div>
+            
+            <button id="btn-buscar" class="btn" style="background:var(--primary); margin: 20px 0;" onclick="consultarReporte()">
+                🔍 Buscar Reporte
+            </button>
+
+            <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Elige grupo y presiona Buscar.</div>
+            
             <div id="reporte-tabla-cont" style="display:none">
                 <div class="table-container">
                     <table id="tabla-datos"><thead id="head-reporte"></thead><tbody id="body-reporte"></tbody></table>
@@ -168,11 +141,9 @@
             messagingSenderId: "892289957745",
             appId: "1:892289957745:web:3a1b93b635bcc9db08c0d0"
         };
-        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Estado de conexión
         db.ref(".info/connected").on("value", (snap) => {
             const dot = document.getElementById('dot');
             const txt = document.getElementById('status-text');
@@ -276,16 +247,25 @@
             const gId = document.getElementById('rep-grupo').value;
             const inicio = document.getElementById('fecha-inicio').value;
             const fin = document.getElementById('fecha-fin').value;
-            if(!gId) return;
+            
+            if(!gId) return alert("Selecciona un grupo primero");
+
+            const btn = document.getElementById('btn-buscar');
+            btn.innerText = "⏳ Buscando...";
+            btn.disabled = true;
 
             db.ref(`asistencias/${gId}`).once('value', snap => {
                 const d = snap.val();
                 const cont = document.getElementById('reporte-tabla-cont');
                 const vacio = document.getElementById('reporte-vacio');
-                if(!d) { cont.style.display='none'; vacio.style.display='block'; return; }
+                
+                btn.innerHTML = "🔍 Buscar Reporte";
+                btn.disabled = false;
+
+                if(!d) { cont.style.display='none'; vacio.style.display='block'; vacio.innerText="No hay registros para este grupo."; return; }
 
                 const sesiones = Object.keys(d).filter(sId => sId.substring(0, 10) >= inicio && sId.substring(0, 10) <= fin).sort();
-                if(sesiones.length === 0) { cont.style.display='none'; vacio.style.display='block'; return; }
+                if(sesiones.length === 0) { cont.style.display='none'; vacio.style.display='block'; vacio.innerText="No hay clases en estas fechas."; return; }
 
                 cont.style.display='block'; vacio.style.display='none';
                 
@@ -320,7 +300,6 @@
             XLSX.writeFile(XLSX.utils.table_to_book(clon), "Asistencia_DrPeinado.xlsx");
         }
 
-        // SYNC
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
