@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dr. Peinado - Reporte Optimizado</title>
+    <title>Dr. Peinado - Asistencia Controlada</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -44,6 +44,10 @@
         .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
         .dot-si { background-color: var(--success); }
         .dot-no { background-color: var(--danger); }
+
+        /* Controles de navegación de lista */
+        .nav-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-nav { background: #E5E5EA; color: var(--text); padding: 10px; border-radius: 10px; font-size: 14px; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -95,10 +99,17 @@
             <button class="btn" style="background:var(--primary)" onclick="iniciarPasarLista()">Comenzar</button>
         </div>
         <div id="asistencia-flujo" class="card" style="display:none; text-align:center">
-            <div id="nombre-display" style="font-size:32px; font-weight:800; margin:40px 0; color:var(--primary)"></div>
+            <div id="contador-alu" style="color: var(--secondary); font-size: 14px;"></div>
+            <div id="nombre-display" style="font-size:28px; font-weight:800; margin:30px 0; color:var(--primary); min-height: 80px; display: flex; align-items: center; justify-content: center;"></div>
+            
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-                <button class="btn" style="background:var(--danger); padding:30px" onclick="registrarAsis(false)">FALTA</button>
-                <button class="btn" style="background:var(--success); padding:30px" onclick="registrarAsis(true)">PRESENTE</button>
+                <button class="btn" style="background:var(--danger); padding:25px" onclick="registrarAsis(false)">FALTA</button>
+                <button class="btn" style="background:var(--success); padding:25px" onclick="registrarAsis(true)">PRESENTE</button>
+            </div>
+
+            <div class="nav-controls">
+                <button class="btn-nav" onclick="cambiarAlumno(-1)">❮ Anterior</button>
+                <button class="btn-nav" onclick="cambiarAlumno(1)">Siguiente ❯</button>
             </div>
         </div>
     </div>
@@ -115,13 +126,8 @@
                 <div><label>Desde:</label><input type="date" id="fecha-inicio"></div>
                 <div><label>Hasta:</label><input type="date" id="fecha-fin"></div>
             </div>
-            
-            <button id="btn-buscar" class="btn" style="background:var(--primary); margin: 20px 0;" onclick="consultarReporte()">
-                🔍 Buscar Reporte
-            </button>
-
+            <button id="btn-buscar" class="btn" style="background:var(--primary); margin: 20px 0;" onclick="consultarReporte()">🔍 Buscar Reporte</button>
             <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Elige grupo y presiona Buscar.</div>
-            
             <div id="reporte-tabla-cont" style="display:none">
                 <div class="table-container">
                     <table id="tabla-datos"><thead id="head-reporte"></thead><tbody id="body-reporte"></tbody></table>
@@ -226,30 +232,46 @@
                 listaAlumnosActual = Object.keys(d).map(k => ({id: k, nombre: d[k].nombre}));
                 document.getElementById('asistencia-seleccion').style.display='none';
                 document.getElementById('asistencia-flujo').style.display='block';
+                indexAlu = 0;
                 mostrarProximoAlu();
             });
         }
 
         function mostrarProximoAlu() {
-            if(indexAlu < listaAlumnosActual.length) {
+            if(indexAlu < listaAlumnosActual.length && indexAlu >= 0) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
-            } else { alert("Sesión finalizada"); navegar('home'); }
+                document.getElementById('contador-alu').innerText = `Alumno ${indexAlu + 1} de ${listaAlumnosActual.length}`;
+            } else if (indexAlu >= listaAlumnosActual.length) {
+                alert("Sesión finalizada"); navegar('home');
+            }
         }
 
         function registrarAsis(st) {
             db.ref(`asistencias/${grupoIdGlobal}/${sessionIdActual}/${listaAlumnosActual[indexAlu].id}`).set({
                 nombre: listaAlumnosActual[indexAlu].nombre, presente: st
             });
-            indexAlu++; mostrarProximoAlu();
+            indexAlu++; 
+            mostrarProximoAlu();
+        }
+
+        // Nueva función para navegar sin registrar (o corregir)
+        function cambiarAlumno(dir) {
+            let nuevoIndex = indexAlu + dir;
+            if (nuevoIndex >= 0 && nuevoIndex < listaAlumnosActual.length) {
+                // Si regresamos, eliminamos el registro anterior para asegurar limpieza
+                if(dir === -1) {
+                    db.ref(`asistencias/${grupoIdGlobal}/${sessionIdActual}/${listaAlumnosActual[nuevoIndex].id}`).remove();
+                }
+                indexAlu = nuevoIndex;
+                mostrarProximoAlu();
+            }
         }
 
         function consultarReporte() {
             const gId = document.getElementById('rep-grupo').value;
             const inicio = document.getElementById('fecha-inicio').value;
             const fin = document.getElementById('fecha-fin').value;
-            
             if(!gId) return alert("Selecciona un grupo primero");
-
             const btn = document.getElementById('btn-buscar');
             btn.innerText = "⏳ Buscando...";
             btn.disabled = true;
@@ -258,24 +280,18 @@
                 const d = snap.val();
                 const cont = document.getElementById('reporte-tabla-cont');
                 const vacio = document.getElementById('reporte-vacio');
-                
                 btn.innerHTML = "🔍 Buscar Reporte";
                 btn.disabled = false;
-
-                if(!d) { cont.style.display='none'; vacio.style.display='block'; vacio.innerText="No hay registros para este grupo."; return; }
-
+                if(!d) { cont.style.display='none'; vacio.style.display='block'; return; }
                 const sesiones = Object.keys(d).filter(sId => sId.substring(0, 10) >= inicio && sId.substring(0, 10) <= fin).sort();
-                if(sesiones.length === 0) { cont.style.display='none'; vacio.style.display='block'; vacio.innerText="No hay clases en estas fechas."; return; }
-
+                if(sesiones.length === 0) { cont.style.display='none'; vacio.style.display='block'; return; }
                 cont.style.display='block'; vacio.style.display='none';
-                
                 let headHtml = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(sId => {
                     headHtml += `<th>${sId.substring(8,10)}/${sId.substring(5,7)}<br>${sId.substring(11,13)}:${sId.substring(13,15)}</th>`;
                 });
                 headHtml += `</tr>`;
                 document.getElementById('head-reporte').innerHTML = headHtml;
-
                 db.ref('alumnos/'+gId).once('value', snapAlu => {
                     const alus = snapAlu.val();
                     let bodyHtml = "";
