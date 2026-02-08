@@ -19,7 +19,6 @@
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* BARRA DE ESTADO CORREGIDA */
         #status-bar { position: fixed; top: 10px; right: 15px; font-size: 11px; font-weight: bold; z-index: 1000; display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 5px 12px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; }
         .status-dot { height: 8px; width: 8px; border-radius: 50%; margin-right: 7px; transition: background 0.3s; }
 
@@ -29,7 +28,7 @@
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
         
-        .live-clock { background: #f0f7ff; border: 1.5px solid var(--primary); padding: 12px; border-radius: 15px; margin-bottom: 15px; color: var(--primary); font-weight: 800; font-size: 18px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,122,255,0.05); }
+        .live-clock { background: #f0f7ff; border: 1.5px solid var(--primary); padding: 12px; border-radius: 15px; margin-bottom: 15px; color: var(--primary); font-weight: 800; font-size: 18px; text-align: center; }
         
         .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; }
         table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
@@ -96,8 +95,8 @@
                 <select id="rep-grupo"></select>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px">
-                <input type="date" id="fecha-inicio">
-                <input type="date" id="fecha-fin">
+                <div><label style="font-size:10px">INICIO</label><input type="date" id="fecha-inicio"></div>
+                <div><label style="font-size:10px">FIN</label><input type="date" id="fecha-fin"></div>
             </div>
             <button class="btn" style="background:var(--primary)" onclick="consultarReporte()">🔍 Buscar</button>
             <div id="reporte-tabla-cont" style="display:none">
@@ -125,20 +124,13 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- LÓGICA DE CONEXIÓN CORREGIDA ---
         db.ref(".info/connected").on("value", (snap) => {
             const dot = document.getElementById('status-dot-ui');
             const txt = document.getElementById('status-text-ui');
-            if (snap.val() === true) {
-                dot.style.background = "var(--success)";
-                txt.innerText = "En línea";
-            } else {
-                dot.style.background = "var(--danger)";
-                txt.innerText = "Offline";
-            }
+            if (snap.val() === true) { dot.style.background = "var(--success)"; txt.innerText = "En línea"; }
+            else { dot.style.background = "var(--danger)"; txt.innerText = "Offline"; }
         });
 
-        // RELOJ
         setInterval(() => {
             const ahora = new Date();
             const reloj = document.getElementById('reloj-vivo');
@@ -154,17 +146,29 @@
         function navegar(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             if (id === 'home') resetearApp();
+            
+            // CONFIGURACIÓN DE FECHAS AUTOMÁTICA
+            if (id === 'reportes') {
+                // Fecha de inicio fija: 03 de Febrero 2026
+                document.getElementById('fecha-inicio').value = "2026-02-03";
+                
+                // Fecha de fin: Hoy
+                const hoy = new Date();
+                const hoyStr = `${hoy.getFullYear()}-${(hoy.getMonth()+1).toString().padStart(2,'0')}-${hoy.getDate().toString().padStart(2,'0')}`;
+                document.getElementById('fecha-fin').value = hoyStr;
+            }
+            
             document.getElementById(id).classList.add('active');
         }
+
+        // --- EL RESTO DE LAS FUNCIONES SE MANTIENEN IGUAL ---
 
         function iniciarPasarLista() {
             grupoIdGlobal = document.getElementById('asis-grupo').value;
             if(!grupoIdGlobal) return alert("Selecciona un grupo");
-            
             const d = new Date();
             const idSesion = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}_${d.getHours().toString().padStart(2,'0')}${d.getMinutes().toString().padStart(2,'0')}`;
             sessionIdActual = idSesion;
-
             db.ref('alumnos/'+grupoIdGlobal).once('value', snap => {
                 const alus = snap.val(); if(!alus) return alert("No hay alumnos");
                 listaAlumnosActual = Object.keys(alus).map(k => ({id:k, nombre:alus[k].nombre}));
@@ -175,6 +179,13 @@
             });
         }
 
+        function registrarAsis(st) {
+            db.ref(`asistencias/${grupoIdGlobal}/${sessionIdActual}/${listaAlumnosActual[indexAlu].id}`).set({
+                nombre: listaAlumnosActual[indexAlu].nombre, presente: st
+            });
+            indexAlu++; mostrarProximoAlu();
+        }
+
         function mostrarProximoAlu() {
             if(indexAlu < listaAlumnosActual.length && indexAlu >= 0) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
@@ -182,13 +193,6 @@
             } else if (indexAlu >= listaAlumnosActual.length) {
                 alert("Fin de lista"); navegar('home');
             }
-        }
-
-        function registrarAsis(st) {
-            db.ref(`asistencias/${grupoIdGlobal}/${sessionIdActual}/${listaAlumnosActual[indexAlu].id}`).set({
-                nombre: listaAlumnosActual[indexAlu].nombre, presente: st
-            });
-            indexAlu++; mostrarProximoAlu();
         }
 
         function cambiarAlumno(dir) {
@@ -201,15 +205,12 @@
             const inicio = document.getElementById('fecha-inicio').value;
             const fin = document.getElementById('fecha-fin').value;
             if(!gId) return alert("Selecciona grupo");
-
             db.ref(`asistencias/${gId}`).on('value', snap => {
                 const data = snap.val();
                 const cont = document.getElementById('reporte-tabla-cont');
                 if(!data) { cont.style.display='none'; return; }
-
                 const sesiones = Object.keys(data).filter(s => s.substring(0,10) >= inicio && s.substring(0,10) <= fin).sort();
                 if(sesiones.length === 0) { cont.style.display='none'; return; }
-
                 cont.style.display='block';
                 let h = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(s => {
@@ -217,7 +218,6 @@
                     h += `<th class="date-header" onclick="eliminarSesion('${gId}','${s}','${f}')">${f}</th>`;
                 });
                 document.getElementById('head-reporte').innerHTML = h + `</tr>`;
-
                 db.ref('alumnos/'+gId).once('value', sAlu => {
                     const alus = sAlu.val(); let b = "";
                     Object.keys(alus).forEach(aId => {
@@ -236,7 +236,6 @@
 
         function toggleAsis(g, s, a, st) { if(st!==null) db.ref(`asistencias/${g}/${s}/${a}`).update({presente:!st}); }
         function eliminarSesion(g, s, f) { if(confirm(`¿Borrar lista del ${f}?`)) db.ref(`asistencias/${g}/${s}`).remove(); }
-
         function exportarExcelAF() {
             const t = document.getElementById("tabla-datos");
             const c = t.cloneNode(true);
@@ -246,14 +245,11 @@
             });
             XLSX.writeFile(XLSX.utils.table_to_book(c), "Reporte_Asistencia.xlsx");
         }
-
         function resetearApp() {
             indexAlu = 0;
             document.getElementById('asistencia-seleccion').style.display='block';
             document.getElementById('asistencia-flujo').style.display='none';
         }
-
-        // CARGAS INICIALES
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
@@ -262,7 +258,6 @@
                 sels.forEach(s => { if(s) s.innerHTML += `<option value="${k}">${d[k].apodo}</option>`; });
             });
         });
-
         db.ref('grupos').on('value', snap => {
             todosGrupos = snap.val() || {};
             const list = document.getElementById('listaGroups'); if(list) list.innerHTML = "";
@@ -270,7 +265,6 @@
                 if(list) list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee">${todosGrupos[k].nombreGrupo} <span onclick="db.ref('grupos/${k}').remove()" style="float:right">🗑️</span></div>`;
             });
         });
-
         function filtrarGrupos(idEsc, idGrup) {
             const escId = document.getElementById(idEsc).value;
             const selG = document.getElementById(idGrup);
@@ -279,13 +273,11 @@
                 if(todosGrupos[k].escuelaId === escId) selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`;
             });
         }
-
         function guardarEscuela() {
             const n = document.getElementById('nombreEscuela').value;
             const a = document.getElementById('apodoEscuela').value;
             if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a });
         }
-
         function guardarGrupo() {
             const eId = document.getElementById('selectEscuelaGrupo').value;
             const nG = document.getElementById('nombreGrupo').value;
