@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dr. Peinado - Asistencia Controlada</title>
+    <title>Dr. Peinado - Reporte Interactivo</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -29,23 +29,27 @@
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
         
+        /* TABLA INTERACTIVA */
+        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; position: relative; }
+        table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
+        th { background: #f8f8f8; padding: 12px; font-size: 10px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; position: sticky; top: 0; z-index: 10; }
+        td { padding: 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0; text-align: center; }
+        
+        .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white !important; position: sticky; left: 0; z-index: 5; border-right: 2px solid #ddd !important; }
+        th.name-col { z-index: 11; background: #f8f8f8 !important; }
+
+        /* Celdas clicables */
+        .cell-clickable { cursor: pointer; transition: background 0.2s; }
+        .cell-clickable:active { background: #f0f0f7; transform: scale(0.9); }
+
+        .dot { height: 16px; width: 16px; border-radius: 50%; display: inline-block; pointer-events: none; }
+        .dot-si { background-color: var(--success); }
+        .dot-no { background-color: var(--danger); }
+
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; margin: 0 auto; }
         .menu-item { padding: 20px 10px; background: white; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
         .menu-item span { font-size: 28px; margin-bottom: 8px; }
 
-        /* TABLA CONGELADA */
-        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; position: relative; }
-        table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
-        th { background: #f8f8f8; padding: 12px; font-size: 10px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; position: sticky; top: 0; z-index: 10; }
-        td { padding: 10px; font-size: 13px; border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0; text-align: center; }
-        .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white !important; position: sticky; left: 0; z-index: 5; border-right: 2px solid #ddd !important; }
-        th.name-col { z-index: 11; background: #f8f8f8 !important; }
-
-        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
-        .dot-si { background-color: var(--success); }
-        .dot-no { background-color: var(--danger); }
-
-        /* Controles de navegación de lista */
         .nav-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .btn-nav { background: #E5E5EA; color: var(--text); padding: 10px; border-radius: 10px; font-size: 14px; border: none; cursor: pointer; }
     </style>
@@ -101,12 +105,10 @@
         <div id="asistencia-flujo" class="card" style="display:none; text-align:center">
             <div id="contador-alu" style="color: var(--secondary); font-size: 14px;"></div>
             <div id="nombre-display" style="font-size:28px; font-weight:800; margin:30px 0; color:var(--primary); min-height: 80px; display: flex; align-items: center; justify-content: center;"></div>
-            
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
                 <button class="btn" style="background:var(--danger); padding:25px" onclick="registrarAsis(false)">FALTA</button>
                 <button class="btn" style="background:var(--success); padding:25px" onclick="registrarAsis(true)">PRESENTE</button>
             </div>
-
             <div class="nav-controls">
                 <button class="btn-nav" onclick="cambiarAlumno(-1)">❮ Anterior</button>
                 <button class="btn-nav" onclick="cambiarAlumno(1)">Siguiente ❯</button>
@@ -127,12 +129,14 @@
                 <div><label>Hasta:</label><input type="date" id="fecha-fin"></div>
             </div>
             <button id="btn-buscar" class="btn" style="background:var(--primary); margin: 20px 0;" onclick="consultarReporte()">🔍 Buscar Reporte</button>
-            <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Elige grupo y presiona Buscar.</div>
+            
+            <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Toca los puntos rojos para cambiarlos a verde.</div>
+            
             <div id="reporte-tabla-cont" style="display:none">
                 <div class="table-container">
                     <table id="tabla-datos"><thead id="head-reporte"></thead><tbody id="body-reporte"></tbody></table>
                 </div>
-                <button class="btn" style="background:var(--warning)" onclick="exportarExcelAF()">Exportar Excel (A/F) 📥</button>
+                <button class="btn" style="background:var(--warning)" onclick="exportarExcelAF()">Exportar Excel 📥</button>
             </div>
         </div>
     </div>
@@ -150,7 +154,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        db.ref(".info/connected").on("value", (snap) => {
+        db.ref(".info/connected").on("value", snap => {
             const dot = document.getElementById('dot');
             const txt = document.getElementById('status-text');
             if (snap.val() === true) { dot.style.background = "var(--success)"; txt.innerText = "En línea"; }
@@ -173,17 +177,12 @@
                 document.getElementById('fecha-inicio').value = haceMes.toISOString().split('T')[0];
             }
             document.getElementById(id).classList.add('active');
-            window.scrollTo(0,0);
         }
 
         function resetearApp() {
-            document.querySelectorAll('input').forEach(i => i.value = "");
-            document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-            indexAlu = 0; listaAlumnosActual = [];
+            indexAlu = 0;
             document.getElementById('asistencia-seleccion').style.display='block';
             document.getElementById('asistencia-flujo').style.display='none';
-            document.getElementById('reporte-tabla-cont').style.display='none';
-            document.getElementById('reporte-vacio').style.display='block';
         }
 
         function filtrarGrupos(idEsc, idGrup) {
@@ -198,26 +197,26 @@
         function guardarEscuela() {
             const n = document.getElementById('nombreEscuela').value;
             const a = document.getElementById('apodoEscuela').value;
-            if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a }).then(() => navegar('home'));
+            if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a }).then(() => { document.getElementById('nombreEscuela').value=""; document.getElementById('apodoEscuela').value=""; });
         }
 
         function guardarGrupo() {
             const eId = document.getElementById('selectEscuelaGrupo').value;
             const eTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
             const nG = document.getElementById('nombreGrupo').value;
-            if(eId && nG) db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG }).then(() => navegar('home'));
+            if(eId && nG) db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG }).then(() => { document.getElementById('nombreGrupo').value=""; });
         }
 
         function leerExcel(e) {
             const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onload = (evt) => {
+            reader.onload = evt => {
                 const rows = XLSX.utils.sheet_to_row_object_array(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]);
                 rows.forEach(r => {
                     const nom = r.Nombre || r.nombre || r.ALUMNO;
                     if(nom) db.ref('alumnos/'+grupoIdGlobal).push({ nombre: nom });
                 });
-                alert("Importados"); navegar('home');
+                alert("Importados");
             };
             reader.readAsBinaryString(file);
         }
@@ -232,8 +231,7 @@
                 listaAlumnosActual = Object.keys(d).map(k => ({id: k, nombre: d[k].nombre}));
                 document.getElementById('asistencia-seleccion').style.display='none';
                 document.getElementById('asistencia-flujo').style.display='block';
-                indexAlu = 0;
-                mostrarProximoAlu();
+                indexAlu = 0; mostrarProximoAlu();
             });
         }
 
@@ -250,18 +248,12 @@
             db.ref(`asistencias/${grupoIdGlobal}/${sessionIdActual}/${listaAlumnosActual[indexAlu].id}`).set({
                 nombre: listaAlumnosActual[indexAlu].nombre, presente: st
             });
-            indexAlu++; 
-            mostrarProximoAlu();
+            indexAlu++; mostrarProximoAlu();
         }
 
-        // Nueva función para navegar sin registrar (o corregir)
         function cambiarAlumno(dir) {
             let nuevoIndex = indexAlu + dir;
             if (nuevoIndex >= 0 && nuevoIndex < listaAlumnosActual.length) {
-                // Si regresamos, eliminamos el registro anterior para asegurar limpieza
-                if(dir === -1) {
-                    db.ref(`asistencias/${grupoIdGlobal}/${sessionIdActual}/${listaAlumnosActual[nuevoIndex].id}`).remove();
-                }
                 indexAlu = nuevoIndex;
                 mostrarProximoAlu();
             }
@@ -271,20 +263,22 @@
             const gId = document.getElementById('rep-grupo').value;
             const inicio = document.getElementById('fecha-inicio').value;
             const fin = document.getElementById('fecha-fin').value;
-            if(!gId) return alert("Selecciona un grupo primero");
+            if(!gId) return alert("Selecciona un grupo");
+            
             const btn = document.getElementById('btn-buscar');
-            btn.innerText = "⏳ Buscando...";
-            btn.disabled = true;
+            btn.innerText = "⏳ Cargando..."; btn.disabled = true;
 
-            db.ref(`asistencias/${gId}`).once('value', snap => {
+            db.ref(`asistencias/${gId}`).on('value', snap => { // Usamos .on para que se actualice solo al hacer clic
                 const d = snap.val();
                 const cont = document.getElementById('reporte-tabla-cont');
                 const vacio = document.getElementById('reporte-vacio');
-                btn.innerHTML = "🔍 Buscar Reporte";
-                btn.disabled = false;
+                
+                btn.innerHTML = "🔍 Buscar Reporte"; btn.disabled = false;
                 if(!d) { cont.style.display='none'; vacio.style.display='block'; return; }
+
                 const sesiones = Object.keys(d).filter(sId => sId.substring(0, 10) >= inicio && sId.substring(0, 10) <= fin).sort();
                 if(sesiones.length === 0) { cont.style.display='none'; vacio.style.display='block'; return; }
+
                 cont.style.display='block'; vacio.style.display='none';
                 let headHtml = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(sId => {
@@ -292,15 +286,20 @@
                 });
                 headHtml += `</tr>`;
                 document.getElementById('head-reporte').innerHTML = headHtml;
+
                 db.ref('alumnos/'+gId).once('value', snapAlu => {
                     const alus = snapAlu.val();
                     let bodyHtml = "";
                     Object.keys(alus).forEach(aId => {
                         bodyHtml += `<tr><td class="name-col">${alus[aId].nombre}</td>`;
                         sesiones.forEach(sId => {
-                            const reg = d[sId][aId];
-                            const letra = reg ? (reg.presente ? 'A' : 'F') : '-';
-                            bodyHtml += `<td data-export="${letra}">${reg ? `<span class="dot ${reg.presente?'dot-si':'dot-no'}"></span>` : '-'}</td>`;
+                            const reg = d[sId] ? d[sId][aId] : null;
+                            const status = reg ? reg.presente : null;
+                            const letra = status === true ? 'A' : (status === false ? 'F' : '-');
+                            bodyHtml += `
+                                <td class="cell-clickable" onclick="toggleAsistencia('${gId}','${sId}','${aId}',${status},'${alus[aId].nombre}')" data-export="${letra}">
+                                    ${status !== null ? `<span class="dot ${status?'dot-si':'dot-no'}"></span>` : '-'}
+                                </td>`;
                         });
                         bodyHtml += `</tr>`;
                     });
@@ -309,11 +308,20 @@
             });
         }
 
+        // FUNCIÓN MÁGICA: Cambia el estado en Firebase al tocar la celda
+        function toggleAsistencia(gId, sId, aId, currentStatus, nombreAlu) {
+            if(currentStatus === null) return; // No hacer nada si no hay registro ese día
+            const nextStatus = !currentStatus;
+            db.ref(`asistencias/${gId}/${sId}/${aId}`).update({
+                presente: nextStatus
+            });
+        }
+
         function exportarExcelAF() {
             const t = document.getElementById("tabla-datos");
             const clon = t.cloneNode(true);
             clon.querySelectorAll('td').forEach(td => { if(td.hasAttribute('data-export')) td.innerText = td.getAttribute('data-export'); });
-            XLSX.writeFile(XLSX.utils.table_to_book(clon), "Asistencia_DrPeinado.xlsx");
+            XLSX.writeFile(XLSX.utils.table_to_book(clon), "Reporte_Asistencia.xlsx");
         }
 
         db.ref('escuelas').on('value', snap => {
