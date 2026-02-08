@@ -19,42 +19,27 @@
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* BARRA DE ESTADO */
         #status-bar { position: fixed; top: 10px; right: 15px; font-size: 11px; font-weight: bold; z-index: 1000; display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 5px 12px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; }
         .status-dot { height: 8px; width: 8px; border-radius: 50%; margin-right: 7px; transition: background 0.3s; }
 
-        /* MENÚ PRINCIPAL */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin: 40px auto; padding: 10px; }
-        .menu-item { 
-            aspect-ratio: 1 / 1; 
-            background: white; 
-            border-radius: 28px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            font-weight: 700; 
-            font-size: 18px; 
-            border: none; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
-            transition: all 0.2s ease;
-            color: var(--text);
-        }
+        .menu-item { aspect-ratio: 1 / 1; background: white; border-radius: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: all 0.2s ease; color: var(--text); }
         .menu-item:active { transform: scale(0.92); background: #f9f9f9; }
         .menu-item span { font-size: 55px; margin-bottom: 12px; display: block; }
         
-        /* INTERFAZ */
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 18px; cursor: pointer; font-weight: bold; }
         .live-clock { background: #f0f7ff; border: 1.5px solid var(--primary); padding: 15px; border-radius: 15px; margin-bottom: 15px; color: var(--primary); font-weight: 800; font-size: 18px; text-align: center; }
         
-        /* TABLA */
+        /* Estilos de Listas Gestión */
+        .item-list { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        .item-actions { display: flex; gap: 10px; }
+        .icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; }
+
         .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; }
         table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
-        th.date-header { background: #f8f8f8; padding: 12px; font-size: 10px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; position: sticky; top: 0; z-index: 10; cursor: pointer; }
-        td { padding: 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0; text-align: center; }
         .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white !important; position: sticky; left: 0; z-index: 5; border-right: 2px solid #ddd !important; }
         .dot { height: 16px; width: 16px; border-radius: 50%; display: inline-block; }
         .dot-si { background-color: var(--success); }
@@ -78,6 +63,35 @@
         </div>
     </div>
 
+    <div id="escuelas" class="screen">
+        <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
+        <div class="card">
+            <h3>Nueva Escuela</h3>
+            <input type="text" id="nombreEscuela" placeholder="Nombre (Ej. Primaria Federal)">
+            <input type="text" id="apodoEscuela" placeholder="Siglas (Ej. P.F.)">
+            <button class="btn" style="background:var(--primary)" onclick="guardarEscuela()">Guardar Escuela</button>
+        </div>
+        <div class="card">
+            <h3>Escuelas Registradas</h3>
+            <div id="listaEscuelas"></div>
+        </div>
+    </div>
+
+    <div id="grupos" class="screen">
+        <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
+        <div class="card">
+            <h3>Nuevo Grupo</h3>
+            <select id="selectEscuelaGrupo"></select>
+            <input type="text" id="nombreGrupo" placeholder="Nombre del Grupo (Ej. 1-A)">
+            <button class="btn" style="background:var(--success)" onclick="guardarGrupo()">Crear Grupo</button>
+        </div>
+        <div class="card">
+            <h3>Grupos Activos</h3>
+            <div id="listaGroups"></div>
+        </div>
+        <input type="file" id="inputExcel" style="display:none" accept=".xlsx, .xls" onchange="leerExcel(event)">
+    </div>
+
     <div id="asistencia" class="screen">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div id="asistencia-seleccion" class="card">
@@ -88,16 +102,16 @@
             <button class="btn" style="background:var(--primary)" onclick="iniciarPasarLista()">Comenzar</button>
         </div>
         <div id="asistencia-flujo" class="card" style="display:none; text-align:center">
-            <div id="info-sesion-activa" style="font-size: 11px; color: var(--secondary); margin-bottom: 10px;"></div>
-            <div id="contador-alu" style="font-size: 14px; color: var(--secondary);"></div>
-            <div id="nombre-display" style="font-size:32px; font-weight:800; margin:25px 0; color:var(--primary); min-height: 100px; display: flex; align-items: center; justify-content: center;"></div>
+            <div id="info-sesion-activa" style="font-size: 11px; color: var(--secondary);"></div>
+            <div id="contador-alu" style="font-size: 14px;"></div>
+            <div id="nombre-display" style="font-size:32px; font-weight:800; margin:25px 0; color:var(--primary); min-height: 100px; display:flex; align-items:center; justify-content:center;"></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-                <button class="btn" style="background:var(--danger); padding:30px; font-size: 20px;" onclick="registrarAsis(false)">FALTA</button>
-                <button class="btn" style="background:var(--success); padding:30px; font-size: 20px;" onclick="registrarAsis(true)">PRESENTE</button>
+                <button class="btn" style="background:var(--danger); padding:30px; font-size:20px" onclick="registrarAsis(false)">FALTA</button>
+                <button class="btn" style="background:var(--success); padding:30px; font-size:20px" onclick="registrarAsis(true)">PRESENTE</button>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px">
-                <button class="btn" style="background:#E5E5EA; color:black; font-size:14px" onclick="cambiarAlumno(-1)">❮ Anterior</button>
-                <button class="btn" style="background:#E5E5EA; color:black; font-size:14px" onclick="cambiarAlumno(1)">Siguiente ❯</button>
+                <button class="btn" style="background:#E5E5EA; color:black;" onclick="cambiarAlumno(-1)">❮ Ant.</button>
+                <button class="btn" style="background:#E5E5EA; color:black;" onclick="cambiarAlumno(1)">Sig. ❯</button>
             </div>
         </div>
     </div>
@@ -111,8 +125,8 @@
                 <select id="rep-grupo"></select>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px">
-                <div><label style="font-size:12px">Desde:</label><input type="date" id="fecha-inicio"></div>
-                <div><label style="font-size:12px">Hasta:</label><input type="date" id="fecha-fin"></div>
+                <div><label style="font-size:11px">Desde:</label><input type="date" id="fecha-inicio"></div>
+                <div><label style="font-size:11px">Hasta:</label><input type="date" id="fecha-fin"></div>
             </div>
             <button class="btn" style="background:var(--primary)" onclick="consultarReporte()">🔍 Buscar</button>
             <div id="reporte-tabla-cont" style="display:none">
@@ -123,9 +137,6 @@
             </div>
         </div>
     </div>
-
-    <div id="escuelas" class="screen"><button class="back-btn" onclick="navegar('home')">❮ Inicio</button><div class="card"><h3>Nueva Escuela</h3><input type="text" id="nombreEscuela" placeholder="Nombre"><input type="text" id="apodoEscuela" placeholder="Siglas"><button class="btn" style="background:var(--primary)" onclick="guardarEscuela()">Guardar</button></div><div class="card" id="listaEscuelas"></div></div>
-    <div id="grupos" class="screen"><button class="back-btn" onclick="navegar('home')">❮ Inicio</button><div class="card"><h3>Nuevo Grupo</h3><select id="selectEscuelaGrupo"></select><input type="text" id="nombreGrupo" placeholder="Nombre Grupo"><button class="btn" style="background:var(--success)" onclick="guardarGrupo()">Crear</button></div><input type="file" id="inputExcel" style="display:none" onchange="leerExcel(event)"><div class="card" id="listaGroups"></div></div>
 
     <script>
         const firebaseConfig = {
@@ -140,7 +151,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // CONEXIÓN
         db.ref(".info/connected").on("value", (snap) => {
             const dot = document.getElementById('status-dot-ui');
             const txt = document.getElementById('status-text-ui');
@@ -148,7 +158,6 @@
             else { dot.style.background = "var(--danger)"; txt.innerText = "Offline"; }
         });
 
-        // RELOJ
         setInterval(() => {
             const ahora = new Date();
             const reloj = document.getElementById('reloj-vivo');
@@ -157,33 +166,130 @@
 
         let todosGrupos = {}; let listaAlumnosActual = []; let indexAlu = 0; let grupoIdGlobal = ""; let sessionIdActual = "";
 
-        // NAVEGACIÓN Y CONFIGURACIÓN DE FECHAS
         function navegar(id) { 
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             if (id === 'home') resetearApp();
-            
             if (id === 'reportes') {
                 const hoy = new Date();
-                // Fecha de inicio fija: 3 de febrero de 2026
-                const fInicio = "2026-02-03";
-                
-                // Formato YYYY-MM-DD para el input "Hasta"
-                const fFin = hoy.getFullYear() + '-' + (hoy.getMonth()+1).toString().padStart(2,'0') + '-' + hoy.getDate().toString().padStart(2,'0');
-                
-                document.getElementById('fecha-inicio').value = fInicio;
-                document.getElementById('fecha-fin').value = fFin;
+                document.getElementById('fecha-inicio').value = "2026-02-03";
+                document.getElementById('fecha-fin').value = hoy.getFullYear() + '-' + (hoy.getMonth()+1).toString().padStart(2,'0') + '-' + hoy.getDate().toString().padStart(2,'0');
             }
-            
             document.getElementById(id).classList.add('active'); 
         }
 
+        // --- GESTIÓN DE ESCUELAS ---
+        function guardarEscuela() {
+            const n = document.getElementById('nombreEscuela').value;
+            const a = document.getElementById('apodoEscuela').value;
+            if(n && a) {
+                db.ref('escuelas').push({ nombre: n, apodo: a });
+                document.getElementById('nombreEscuela').value = "";
+                document.getElementById('apodoEscuela').value = "";
+            }
+        }
+
+        db.ref('escuelas').on('value', snap => {
+            const d = snap.val();
+            const listUi = document.getElementById('listaEscuelas');
+            const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
+            
+            sels.forEach(s => { if(s) s.innerHTML = '<option value="">-- Escuela --</option>'; });
+            if(listUi) listUi.innerHTML = "";
+
+            if(d) {
+                Object.keys(d).forEach(k => {
+                    sels.forEach(s => { if(s) s.innerHTML += `<option value="${k}">${d[k].apodo}</option>`; });
+                    if(listUi) {
+                        listUi.innerHTML += `
+                        <div class="item-list">
+                            <span><strong>${d[k].apodo}</strong> - ${d[k].nombre}</span>
+                            <div class="item-actions">
+                                <button class="icon-btn" onclick="editarEscuela('${k}','${d[k].nombre}','${d[k].apodo}')">✏️</button>
+                                <button class="icon-btn" onclick="db.ref('escuelas/${k}').remove()">🗑️</button>
+                            </div>
+                        </div>`;
+                    }
+                });
+            }
+        });
+
+        function editarEscuela(id, n, a) {
+            const nuevoN = prompt("Nuevo nombre:", n);
+            const nuevoA = prompt("Nuevas siglas:", a);
+            if(nuevoN && nuevoA) db.ref('escuelas/'+id).update({ nombre: nuevoN, apodo: nuevoA });
+        }
+
+        // --- GESTIÓN DE GRUPOS ---
+        function guardarGrupo() {
+            const eId = document.getElementById('selectEscuelaGrupo').value;
+            const nG = document.getElementById('nombreGrupo').value;
+            if(eId && nG) {
+                db.ref('grupos').push({ escuelaId: eId, nombreGrupo: nG });
+                document.getElementById('nombreGrupo').value = "";
+            }
+        }
+
+        db.ref('grupos').on('value', snap => {
+            todosGrupos = snap.val() || {};
+            const listUi = document.getElementById('listaGroups');
+            if(listUi) listUi.innerHTML = "";
+
+            Object.keys(todosGrupos).forEach(k => {
+                if(listUi) {
+                    listUi.innerHTML += `
+                    <div class="item-list">
+                        <span>${todosGrupos[k].nombreGrupo}</span>
+                        <div class="item-actions">
+                            <button class="icon-btn" title="Importar Excel" onclick="prepararImportar('${k}')">📥</button>
+                            <button class="icon-btn" onclick="editarGrupo('${k}','${todosGrupos[k].nombreGrupo}')">✏️</button>
+                            <button class="icon-btn" onclick="db.ref('grupos/${k}').remove(); db.ref('alumnos/${k}').remove();">🗑️</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        });
+
+        function editarGrupo(id, n) {
+            const nuevo = prompt("Nuevo nombre del grupo:", n);
+            if(nuevo) db.ref('grupos/'+id).update({ nombreGrupo: nuevo });
+        }
+
+        function filtrarGrupos(idEsc, idGrup) {
+            const escId = document.getElementById(idEsc).value;
+            const selG = document.getElementById(idGrup);
+            selG.innerHTML = '<option value="">-- Grupo --</option>';
+            Object.keys(todosGrupos).forEach(k => {
+                if(todosGrupos[k].escuelaId === escId) selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`;
+            });
+        }
+
+        // --- IMPORTAR EXCEL ---
+        let grupoParaExcel = "";
+        function prepararImportar(id) { grupoParaExcel = id; document.getElementById('inputExcel').click(); }
+        
+        function leerExcel(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const workbook = XLSX.read(evt.target.result, {type: 'binary'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const data = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                data.forEach(row => {
+                    if(row[0]) db.ref('alumnos/'+grupoParaExcel).push({ nombre: row[0].toString().toUpperCase() });
+                });
+                alert("Alumnos importados correctamente");
+            };
+            reader.readAsBinaryString(file);
+        }
+
+        // --- ASISTENCIA ---
         function iniciarPasarLista() {
             grupoIdGlobal = document.getElementById('asis-grupo').value;
             if(!grupoIdGlobal) return alert("Selecciona grupo");
             const d = new Date();
             sessionIdActual = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}_${d.getHours().toString().padStart(2,'0')}${d.getMinutes().toString().padStart(2,'0')}`;
             db.ref('alumnos/'+grupoIdGlobal).once('value', snap => {
-                const alus = snap.val(); if(!alus) return alert("Sin alumnos");
+                const alus = snap.val(); if(!alus) return alert("Grupo sin alumnos registrados");
                 listaAlumnosActual = Object.keys(alus).map(k => ({id:k, nombre:alus[k].nombre}));
                 document.getElementById('asistencia-seleccion').style.display='none';
                 document.getElementById('asistencia-flujo').style.display='block';
@@ -196,7 +302,7 @@
             if(indexAlu < listaAlumnosActual.length && indexAlu >= 0) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
                 document.getElementById('contador-alu').innerText = `Alumno ${indexAlu + 1} de ${listaAlumnosActual.length}`;
-            } else if (indexAlu >= listaAlumnosActual.length) { alert("¡Terminado!"); navegar('home'); }
+            } else if (indexAlu >= listaAlumnosActual.length) { alert("Sesión terminada"); navegar('home'); }
         }
 
         function registrarAsis(st) {
@@ -208,6 +314,7 @@
 
         function cambiarAlumno(dir) { let n = indexAlu + dir; if(n >= 0 && n < listaAlumnosActual.length) { indexAlu = n; mostrarProximoAlu(); } }
 
+        // --- REPORTES ---
         function consultarReporte() {
             const gId = document.getElementById('rep-grupo').value;
             const inicio = document.getElementById('fecha-inicio').value;
@@ -222,11 +329,12 @@
                 let h = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(s => {
                     const f = `${s.substring(8,10)}/${s.substring(5,7)} ${s.substring(11,13)}:${s.substring(13,15)}`;
-                    h += `<th class="date-header" onclick="eliminarSesion('${gId}','${s}','${f}')">${f}</th>`;
+                    h += `<th style="font-size:10px; padding:10px; border-right:1px solid #eee; background:#f9f9f9; cursor:pointer" onclick="eliminarSesion('${gId}','${s}','${f}')">${f}</th>`;
                 });
                 document.getElementById('head-reporte').innerHTML = h + `</tr>`;
                 db.ref('alumnos/'+gId).once('value', sAlu => {
                     const alus = sAlu.val(); let b = "";
+                    if(!alus) return;
                     Object.keys(alus).forEach(aId => {
                         b += `<tr><td class="name-col">${alus[aId].nombre}</td>`;
                         sesiones.forEach(s => {
@@ -244,24 +352,6 @@
         function eliminarSesion(g, s, f) { if(confirm(`¿Borrar lista del ${f}?`)) db.ref(`asistencias/${g}/${s}`).remove(); }
         function resetearApp() { indexAlu = 0; document.getElementById('asistencia-seleccion').style.display='block'; document.getElementById('asistencia-flujo').style.display='none'; }
         
-        db.ref('escuelas').on('value', snap => {
-            const d = snap.val(); const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
-            sels.forEach(s => { if(s) s.innerHTML = '<option value="">-- Escuela --</option>'; });
-            if(d) Object.keys(d).forEach(k => { sels.forEach(s => { if(s) s.innerHTML += `<option value="${k}">${d[k].apodo}</option>`; }); });
-        });
-
-        db.ref('grupos').on('value', snap => {
-            todosGrupos = snap.val() || {}; const list = document.getElementById('listaGroups'); if(list) list.innerHTML = "";
-            Object.keys(todosGrupos).forEach(k => { if(list) list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee">${todosGrupos[k].nombreGrupo} <span onclick="db.ref('grupos/${k}').remove()" style="float:right">🗑️</span></div>`; });
-        });
-
-        function filtrarGrupos(idEsc, idGrup) {
-            const escId = document.getElementById(idEsc).value; const selG = document.getElementById(idGrup);
-            selG.innerHTML = '<option value="">-- Grupo --</option>';
-            Object.keys(todosGrupos).forEach(k => { if(todosGrupos[k].escuelaId === escId) selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`; });
-        }
-        function guardarEscuela() { const n = document.getElementById('nombreEscuela').value; const a = document.getElementById('apodoEscuela').value; if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a }); }
-        function guardarGrupo() { const eId = document.getElementById('selectEscuelaGrupo').value; const nG = document.getElementById('nombreGrupo').value; if(eId && nG) { const eTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text; db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG }); } }
         function exportarExcelAF() {
             const t = document.getElementById("tabla-datos");
             const c = t.cloneNode(true);
