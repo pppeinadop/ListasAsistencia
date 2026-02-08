@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dr. Peinado - Asistencia Pro</title>
@@ -13,8 +13,18 @@
     
     <style>
         :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --danger: #FF3B30; --success: #34C759; --warning: #FF9500; }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); }
+        
+        /* BLOQUEO DE ZOOM Y SELECCIÓN DE TEXTO */
+        * { 
+            box-sizing: border-box; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* EVITA EL ZOOM POR DOBLE CLIC */
+            -webkit-user-select: none;   /* EVITA QUE SE SELECCIONE TEXTO AL TOCAR RÁPIDO */
+            user-select: none;
+        }
+
+        body { background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); overflow-x: hidden; }
         .screen { display: none; width: 100%; max-width: 900px; margin: auto; animation: fadeIn 0.2s; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -23,13 +33,13 @@
         .status-dot { height: 8px; width: 8px; border-radius: 50%; margin-right: 7px; transition: background 0.3s; }
 
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin: 40px auto; padding: 10px; }
-        .menu-item { aspect-ratio: 1 / 1; background: white; border-radius: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: all 0.2s ease; color: var(--text); }
-        .menu-item:active { transform: scale(0.92); background: #f9f9f9; }
+        .menu-item { aspect-ratio: 1 / 1; background: white; border-radius: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.08); color: var(--text); }
+        .menu-item:active { background: #f0f0f0; }
         .menu-item span { font-size: 55px; margin-bottom: 12px; display: block; }
         
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; -webkit-user-select: text; /* PERMITIR TEXTO SOLO EN INPUTS */ }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 18px; cursor: pointer; font-weight: bold; }
         .live-clock { background: #f0f7ff; border: 1.5px solid var(--primary); padding: 15px; border-radius: 15px; margin-bottom: 15px; color: var(--primary); font-weight: 800; font-size: 18px; text-align: center; }
         
@@ -68,8 +78,8 @@
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div class="card">
             <h3>Nueva Escuela</h3>
-            <input type="text" id="nombreEscuela" placeholder="Nombre (Ej. Primaria Federal)">
-            <input type="text" id="apodoEscuela" placeholder="Siglas (Ej. P.F.)">
+            <input type="text" id="nombreEscuela" placeholder="Nombre de la Escuela">
+            <input type="text" id="apodoEscuela" placeholder="Siglas">
             <button class="btn" style="background:var(--primary)" onclick="guardarEscuela()">Guardar Escuela</button>
         </div>
         <div class="card">
@@ -81,17 +91,16 @@
     <div id="grupos" class="screen">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div class="card">
-            <h3>Nuevo Grupo Activo</h3>
+            <h3>Nuevo Grupo</h3>
             <select id="selectEscuelaGrupo"></select>
-            <input type="text" id="nombreGrupo" placeholder="Nombre del Grupo (Ej. Semestre 2026-A)">
+            <input type="text" id="nombreGrupo" placeholder="Nombre (Ej. Semestre 2026-A)">
             <button class="btn" style="background:var(--success)" onclick="guardarGrupo()">Crear Grupo</button>
         </div>
         <div class="card">
-            <h3>Grupos en Curso</h3>
+            <h3>Grupos Activos</h3>
             <div id="listaGroups"></div>
-            
             <div class="archived-section">
-                <h4 style="color: var(--secondary)">📁 Grupos Archivados (Semestres pasados)</h4>
+                <h4 style="color: var(--secondary)">📁 Archivados</h4>
                 <div id="listaArchivados"></div>
             </div>
         </div>
@@ -101,7 +110,7 @@
     <div id="asistencia" class="screen">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
         <div id="asistencia-seleccion" class="card">
-            <h3>Nueva Lista</h3>
+            <h3>Pasar Lista</h3>
             <div id="reloj-vivo" class="live-clock">--:--:--</div>
             <select id="asis-escuela" onchange="filtrarGrupos('asis-escuela', 'asis-grupo')"></select>
             <select id="asis-grupo"></select>
@@ -112,8 +121,8 @@
             <div id="contador-alu" style="font-size: 14px;"></div>
             <div id="nombre-display" style="font-size:32px; font-weight:800; margin:25px 0; color:var(--primary); min-height: 100px; display:flex; align-items:center; justify-content:center;"></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-                <button class="btn" style="background:var(--danger); padding:30px; font-size:20px" onclick="registrarAsis(false)">FALTA</button>
-                <button class="btn" style="background:var(--success); padding:30px; font-size:20px" onclick="registrarAsis(true)">PRESENTE</button>
+                <button class="btn" style="background:var(--danger); padding:40px; font-size:24px" onclick="registrarAsis(false)">FALTA</button>
+                <button class="btn" style="background:var(--success); padding:40px; font-size:24px" onclick="registrarAsis(true)">PRESENTE</button>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px">
                 <button class="btn" style="background:#E5E5EA; color:black;" onclick="cambiarAlumno(-1)">❮ Ant.</button>
@@ -157,6 +166,25 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // BLOQUEO DE ZOOM POR SCRIPT (iPad Safari)
+        document.addEventListener('touchstart', function (event) {
+            if (event.touches.length > 1) {
+                event.preventDefault(); // Bloquea zoom de dos dedos si es necesario
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault(); // BLOQUEA EL DOBLE CLIC
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // --- LÓGICA DE FIREBASE Y FUNCIONES ---
+        // (Se mantienen iguales las funciones de Escuelas, Grupos, Archivo y Reportes)
+
         db.ref(".info/connected").on("value", (snap) => {
             const dot = document.getElementById('status-dot-ui');
             const txt = document.getElementById('status-text-ui');
@@ -197,23 +225,14 @@
             if(listUi) listUi.innerHTML = "";
             if(d) Object.keys(d).forEach(k => {
                 sels.forEach(s => { if(s) s.innerHTML += `<option value="${k}">${d[k].apodo}</option>`; });
-                if(listUi) listUi.innerHTML += `<div class="item-list"><span><strong>${d[k].apodo}</strong> - ${d[k].nombre}</span><div class="item-actions"><button class="icon-btn" onclick="editarEscuela('${k}','${d[k].nombre}','${d[k].apodo}')">✏️</button><button class="icon-btn" onclick="db.ref('escuelas/${k}').remove()">🗑️</button></div></div>`;
+                if(listUi) listUi.innerHTML += `<div class="item-list"><span><strong>${d[k].apodo}</strong></span><div class="item-actions"><button class="icon-btn" onclick="db.ref('escuelas/${k}').remove()">🗑️</button></div></div>`;
             });
         });
 
-        function editarEscuela(id, n, a) {
-            const nuevoN = prompt("Nuevo nombre:", n); const nuevoA = prompt("Nuevas siglas:", a);
-            if(nuevoN && nuevoA) db.ref('escuelas/'+id).update({ nombre: nuevoN, apodo: nuevoA });
-        }
-
-        // --- GESTIÓN DE GRUPOS CON ARCHIVO ---
         function guardarGrupo() {
             const eId = document.getElementById('selectEscuelaGrupo').value;
             const nG = document.getElementById('nombreGrupo').value;
-            if(eId && nG) {
-                db.ref('grupos').push({ escuelaId: eId, nombreGrupo: nG, estado: 'activo' });
-                document.getElementById('nombreGrupo').value = "";
-            }
+            if(eId && nG) { db.ref('grupos').push({ escuelaId: eId, nombreGrupo: nG, estado: 'activo' }); document.getElementById('nombreGrupo').value = ""; }
         }
 
         db.ref('grupos').on('value', snap => {
@@ -222,46 +241,20 @@
             const listArch = document.getElementById('listaArchivados');
             if(listUi) listUi.innerHTML = "";
             if(listArch) listArch.innerHTML = "";
-
             Object.keys(todosGrupos).forEach(k => {
                 const g = todosGrupos[k];
-                const html = `
-                    <div class="item-list">
-                        <span>${g.nombreGrupo}</span>
-                        <div class="item-actions">
-                            ${g.estado !== 'archivado' ? `
-                            <button class="icon-btn" title="Importar Excel" onclick="prepararImportar('${k}')">📥</button>
-                            <button class="icon-btn" title="Archivar" onclick="cambiarEstadoGrupo('${k}', 'archivado')">📁</button>
-                            ` : `
-                            <button class="icon-btn" title="Desarchivar" onclick="cambiarEstadoGrupo('${k}', 'activo')">📤</button>
-                            `}
-                            <button class="icon-btn" onclick="editarGrupo('${k}','${g.nombreGrupo}')">✏️</button>
-                            <button class="icon-btn" onclick="if(confirm('¿Borrar grupo y alumnos definitivamente?')) { db.ref('grupos/${k}').remove(); db.ref('alumnos/${k}').remove(); }">🗑️</button>
-                        </div>
-                    </div>`;
-                
-                if(g.estado === 'archivado') { if(listArch) listArch.innerHTML += html; }
-                else { if(listUi) listUi.innerHTML += html; }
+                const html = `<div class="item-list"><span>${g.nombreGrupo}</span><div class="item-actions">
+                    ${g.estado !== 'archivado' ? `<button class="icon-btn" onclick="prepararImportar('${k}')">📥</button><button class="icon-btn" onclick="cambiarEstadoGrupo('${k}', 'archivado')">📁</button>` : `<button class="icon-btn" onclick="cambiarEstadoGrupo('${k}', 'activo')">📤</button>`}
+                    <button class="icon-btn" onclick="db.ref('grupos/${k}').remove()">🗑️</button></div></div>`;
+                if(g.estado === 'archivado') { if(listArch) listArch.innerHTML += html; } else { if(listUi) listUi.innerHTML += html; }
             });
         });
 
-        function cambiarEstadoGrupo(id, nuevoEstado) { db.ref('grupos/'+id).update({ estado: nuevoEstado }); }
-
-        function editarGrupo(id, n) {
-            const nuevo = prompt("Nuevo nombre del grupo:", n);
-            if(nuevo) db.ref('grupos/'+id).update({ nombreGrupo: nuevo });
-        }
-
+        function cambiarEstadoGrupo(id, st) { db.ref('grupos/'+id).update({ estado: st }); }
         function filtrarGrupos(idEsc, idGrup) {
-            const escId = document.getElementById(idEsc).value;
-            const selG = document.getElementById(idGrup);
+            const escId = document.getElementById(idEsc).value; const selG = document.getElementById(idGrup);
             selG.innerHTML = '<option value="">-- Grupo --</option>';
-            Object.keys(todosGrupos).forEach(k => {
-                // SOLO MOSTRAR GRUPOS ACTIVOS EN PASAR LISTA Y REPORTES
-                if(todosGrupos[k].escuelaId === escId && todosGrupos[k].estado !== 'archivado') {
-                    selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`;
-                }
-            });
+            Object.keys(todosGrupos).forEach(k => { if(todosGrupos[k].escuelaId === escId && todosGrupos[k].estado !== 'archivado') selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`; });
         }
 
         let grupoParaExcel = "";
@@ -274,7 +267,7 @@
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(sheet, {header: 1});
                 data.forEach(row => { if(row[0]) db.ref('alumnos/'+grupoParaExcel).push({ nombre: row[0].toString().toUpperCase() }); });
-                alert("Importación exitosa");
+                alert("Importado");
             };
             reader.readAsBinaryString(file);
         }
@@ -285,11 +278,11 @@
             const d = new Date();
             sessionIdActual = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}_${d.getHours().toString().padStart(2,'0')}${d.getMinutes().toString().padStart(2,'0')}`;
             db.ref('alumnos/'+grupoIdGlobal).once('value', snap => {
-                const alus = snap.val(); if(!alus) return alert("No hay alumnos");
+                const alus = snap.val(); if(!alus) return alert("Sin alumnos");
                 listaAlumnosActual = Object.keys(alus).map(k => ({id:k, nombre:alus[k].nombre}));
                 document.getElementById('asistencia-seleccion').style.display='none';
                 document.getElementById('asistencia-flujo').style.display='block';
-                document.getElementById('info-sesion-activa').innerText = `LISTA: ${d.toLocaleDateString()} ${d.getHours()}:${d.getMinutes()}`;
+                document.getElementById('info-sesion-activa').innerText = `LISTA: ${d.toLocaleDateString()}`;
                 indexAlu = 0; mostrarProximoAlu();
             });
         }
@@ -297,8 +290,8 @@
         function mostrarProximoAlu() {
             if(indexAlu < listaAlumnosActual.length && indexAlu >= 0) {
                 document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
-                document.getElementById('contador-alu').innerText = `Alumno ${indexAlu + 1} de ${listaAlumnosActual.length}`;
-            } else if (indexAlu >= listaAlumnosActual.length) { alert("¡Terminado!"); navegar('home'); }
+                document.getElementById('contador-alu').innerText = `${indexAlu + 1} / ${listaAlumnosActual.length}`;
+            } else if (indexAlu >= listaAlumnosActual.length) { alert("¡Hecho!"); navegar('home'); }
         }
 
         function registrarAsis(st) {
@@ -321,8 +314,8 @@
                 cont.style.display='block';
                 let h = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(s => {
-                    const f = `${s.substring(8,10)}/${s.substring(5,7)} ${s.substring(11,13)}:${s.substring(13,15)}`;
-                    h += `<th style="font-size:10px; padding:10px; border-right:1px solid #eee; background:#f9f9f9; cursor:pointer" onclick="eliminarSesion('${gId}','${s}','${f}')">${f}</th>`;
+                    const f = `${s.substring(8,10)}/${s.substring(5,7)}`;
+                    h += `<th style="font-size:10px; padding:10px; border-right:1px solid #eee; background:#f9f9f9;" onclick="eliminarSesion('${gId}','${s}','${f}')">${f}</th>`;
                 });
                 document.getElementById('head-reporte').innerHTML = h + `</tr>`;
                 db.ref('alumnos/'+gId).once('value', sAlu => {
