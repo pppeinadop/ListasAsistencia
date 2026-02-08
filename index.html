@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dr. Peinado - Reporte Interactivo</title>
+    <title>Dr. Peinado - Reporte con Borrado de Sesión</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -24,24 +24,35 @@
 
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
         
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
         
-        /* TABLA INTERACTIVA */
+        /* TABLA */
         .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; position: relative; }
         table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
-        th { background: #f8f8f8; padding: 12px; font-size: 10px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; position: sticky; top: 0; z-index: 10; }
+        
+        /* Estilo para el encabezado de fecha (clicable para borrar) */
+        th.date-header { 
+            background: #f8f8f8; 
+            padding: 12px; 
+            font-size: 10px; 
+            border-bottom: 1px solid #eee; 
+            border-right: 1px solid #eee; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        th.date-header:active { background: #ffe5e5; color: var(--danger); }
+
         td { padding: 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0; text-align: center; }
         
         .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white !important; position: sticky; left: 0; z-index: 5; border-right: 2px solid #ddd !important; }
-        th.name-col { z-index: 11; background: #f8f8f8 !important; }
+        th.name-col { z-index: 11; background: #f8f8f8 !important; cursor: default !important; }
 
-        /* Celdas clicables */
-        .cell-clickable { cursor: pointer; transition: background 0.2s; }
-        .cell-clickable:active { background: #f0f0f7; transform: scale(0.9); }
-
+        .cell-clickable { cursor: pointer; transition: transform 0.1s; }
         .dot { height: 16px; width: 16px; border-radius: 50%; display: inline-block; pointer-events: none; }
         .dot-si { background-color: var(--success); }
         .dot-no { background-color: var(--danger); }
@@ -130,7 +141,11 @@
             </div>
             <button id="btn-buscar" class="btn" style="background:var(--primary); margin: 20px 0;" onclick="consultarReporte()">🔍 Buscar Reporte</button>
             
-            <div id="reporte-vacio" style="text-align:center; padding:20px; color:gray">Toca los puntos rojos para cambiarlos a verde.</div>
+            <div id="reporte-vacio" style="text-align:center; padding:10px; color:gray; font-size: 13px;">
+                💡 Tips:<br>
+                - Toca un punto para cambiar A/F.<br>
+                - Toca la fecha arriba para BORRAR el día.
+            </div>
             
             <div id="reporte-tabla-cont" style="display:none">
                 <div class="table-container">
@@ -197,14 +212,16 @@
         function guardarEscuela() {
             const n = document.getElementById('nombreEscuela').value;
             const a = document.getElementById('apodoEscuela').value;
-            if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a }).then(() => { document.getElementById('nombreEscuela').value=""; document.getElementById('apodoEscuela').value=""; });
+            if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a });
         }
 
         function guardarGrupo() {
             const eId = document.getElementById('selectEscuelaGrupo').value;
-            const eTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
             const nG = document.getElementById('nombreGrupo').value;
-            if(eId && nG) db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG }).then(() => { document.getElementById('nombreGrupo').value=""; });
+            if(eId && nG) {
+                const eTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
+                db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG });
+            }
         }
 
         function leerExcel(e) {
@@ -268,7 +285,7 @@
             const btn = document.getElementById('btn-buscar');
             btn.innerText = "⏳ Cargando..."; btn.disabled = true;
 
-            db.ref(`asistencias/${gId}`).on('value', snap => { // Usamos .on para que se actualice solo al hacer clic
+            db.ref(`asistencias/${gId}`).on('value', snap => {
                 const d = snap.val();
                 const cont = document.getElementById('reporte-tabla-cont');
                 const vacio = document.getElementById('reporte-vacio');
@@ -282,7 +299,8 @@
                 cont.style.display='block'; vacio.style.display='none';
                 let headHtml = `<tr><th class="name-col">Alumno</th>`;
                 sesiones.forEach(sId => {
-                    headHtml += `<th>${sId.substring(8,10)}/${sId.substring(5,7)}<br>${sId.substring(11,13)}:${sId.substring(13,15)}</th>`;
+                    const fPretty = `${sId.substring(8,10)}/${sId.substring(5,7)} ${sId.substring(11,13)}:${sId.substring(13,15)}`;
+                    headHtml += `<th class="date-header" onclick="eliminarSesion('${gId}','${sId}','${fPretty}')">${fPretty}</th>`;
                 });
                 headHtml += `</tr>`;
                 document.getElementById('head-reporte').innerHTML = headHtml;
@@ -297,7 +315,7 @@
                             const status = reg ? reg.presente : null;
                             const letra = status === true ? 'A' : (status === false ? 'F' : '-');
                             bodyHtml += `
-                                <td class="cell-clickable" onclick="toggleAsistencia('${gId}','${sId}','${aId}',${status},'${alus[aId].nombre}')" data-export="${letra}">
+                                <td class="cell-clickable" onclick="toggleAsistencia('${gId}','${sId}','${aId}',${status})">
                                     ${status !== null ? `<span class="dot ${status?'dot-si':'dot-no'}"></span>` : '-'}
                                 </td>`;
                         });
@@ -308,29 +326,35 @@
             });
         }
 
-        // FUNCIÓN MÁGICA: Cambia el estado en Firebase al tocar la celda
-        function toggleAsistencia(gId, sId, aId, currentStatus, nombreAlu) {
-            if(currentStatus === null) return; // No hacer nada si no hay registro ese día
-            const nextStatus = !currentStatus;
-            db.ref(`asistencias/${gId}/${sId}/${aId}`).update({
-                presente: nextStatus
-            });
+        // FUNCIÓN PARA ELIMINAR TODA LA COLUMNA (SESIÓN)
+        function eliminarSesion(gId, sId, fecha) {
+            if(confirm(`⚠️ ¿Deseas ELIMINAR por completo toda la lista del día ${fecha}? Esta acción no se puede deshacer.`)) {
+                db.ref(`asistencias/${gId}/${sId}`).remove()
+                    .then(() => console.log("Sesión eliminada"))
+                    .catch(err => alert("Error: " + err));
+            }
+        }
+
+        function toggleAsistencia(gId, sId, aId, currentStatus) {
+            if(currentStatus === null) return; 
+            db.ref(`asistencias/${gId}/${sId}/${aId}`).update({ presente: !currentStatus });
         }
 
         function exportarExcelAF() {
             const t = document.getElementById("tabla-datos");
             const clon = t.cloneNode(true);
-            clon.querySelectorAll('td').forEach(td => { if(td.hasAttribute('data-export')) td.innerText = td.getAttribute('data-export'); });
-            XLSX.writeFile(XLSX.utils.table_to_book(clon), "Reporte_Asistencia.xlsx");
+            clon.querySelectorAll('td').forEach(td => { if(td.hasAttribute('data-export')) {
+                const status = td.querySelector('.dot-si');
+                td.innerText = status ? 'A' : 'F';
+            }});
+            XLSX.writeFile(XLSX.utils.table_to_book(clon), "Asistencia_DrPeinado.xlsx");
         }
 
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
-            const list = document.getElementById('listaEscuelas'); if(list) list.innerHTML = "";
             sels.forEach(s => { if(s) s.innerHTML = '<option value="">-- Escuela --</option>'; });
             if(d) Object.keys(d).forEach(k => {
-                if(list) list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee">${d[k].apodo} <span onclick="db.ref('escuelas/${k}').remove()" style="float:right">🗑️</span></div>`;
                 sels.forEach(s => { if(s) s.innerHTML += `<option value="${k}">${d[k].apodo}</option>`; });
             });
         });
