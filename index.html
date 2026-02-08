@@ -23,10 +23,10 @@
         #status-bar { position: fixed; top: 10px; right: 15px; font-size: 11px; font-weight: bold; z-index: 1000; display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 5px 12px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; }
         .status-dot { height: 8px; width: 8px; border-radius: 50%; margin-right: 7px; transition: background 0.3s; }
 
-        /* MENÚ PRINCIPAL MEJORADO */
+        /* MENÚ PRINCIPAL */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin: 40px auto; padding: 10px; }
         .menu-item { 
-            aspect-ratio: 1 / 1; /* Los hace cuadrados */
+            aspect-ratio: 1 / 1; 
             background: white; 
             border-radius: 28px; 
             display: flex; 
@@ -40,14 +40,14 @@
             transition: all 0.2s ease;
             color: var(--text);
         }
-        .menu-item:active { transform: scale(0.92); background: #f9f9f9; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .menu-item:active { transform: scale(0.92); background: #f9f9f9; }
         .menu-item span { font-size: 55px; margin-bottom: 12px; display: block; }
         
-        /* RESTO DE LA INTERFAZ */
+        /* INTERFAZ */
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
-        .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 18px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 18px; cursor: pointer; font-weight: bold; }
         .live-clock { background: #f0f7ff; border: 1.5px solid var(--primary); padding: 15px; border-radius: 15px; margin-bottom: 15px; color: var(--primary); font-weight: 800; font-size: 18px; text-align: center; }
         
         /* TABLA */
@@ -111,8 +111,8 @@
                 <select id="rep-grupo"></select>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px">
-                <input type="date" id="fecha-inicio">
-                <input type="date" id="fecha-fin">
+                <div><label style="font-size:12px">Desde:</label><input type="date" id="fecha-inicio"></div>
+                <div><label style="font-size:12px">Hasta:</label><input type="date" id="fecha-fin"></div>
             </div>
             <button class="btn" style="background:var(--primary)" onclick="consultarReporte()">🔍 Buscar</button>
             <div id="reporte-tabla-cont" style="display:none">
@@ -140,6 +140,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // CONEXIÓN
         db.ref(".info/connected").on("value", (snap) => {
             const dot = document.getElementById('status-dot-ui');
             const txt = document.getElementById('status-text-ui');
@@ -147,6 +148,7 @@
             else { dot.style.background = "var(--danger)"; txt.innerText = "Offline"; }
         });
 
+        // RELOJ
         setInterval(() => {
             const ahora = new Date();
             const reloj = document.getElementById('reloj-vivo');
@@ -155,9 +157,23 @@
 
         let todosGrupos = {}; let listaAlumnosActual = []; let indexAlu = 0; let grupoIdGlobal = ""; let sessionIdActual = "";
 
+        // NAVEGACIÓN Y CONFIGURACIÓN DE FECHAS
         function navegar(id) { 
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             if (id === 'home') resetearApp();
+            
+            if (id === 'reportes') {
+                const hoy = new Date();
+                // Fecha de inicio fija: 3 de febrero de 2026
+                const fInicio = "2026-02-03";
+                
+                // Formato YYYY-MM-DD para el input "Hasta"
+                const fFin = hoy.getFullYear() + '-' + (hoy.getMonth()+1).toString().padStart(2,'0') + '-' + hoy.getDate().toString().padStart(2,'0');
+                
+                document.getElementById('fecha-inicio').value = fInicio;
+                document.getElementById('fecha-fin').value = fFin;
+            }
+            
             document.getElementById(id).classList.add('active'); 
         }
 
@@ -246,6 +262,15 @@
         }
         function guardarEscuela() { const n = document.getElementById('nombreEscuela').value; const a = document.getElementById('apodoEscuela').value; if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a }); }
         function guardarGrupo() { const eId = document.getElementById('selectEscuelaGrupo').value; const nG = document.getElementById('nombreGrupo').value; if(eId && nG) { const eTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text; db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG }); } }
+        function exportarExcelAF() {
+            const t = document.getElementById("tabla-datos");
+            const c = t.cloneNode(true);
+            c.querySelectorAll('td').forEach(td => {
+                if(td.querySelector('.dot-si')) td.innerText = 'A';
+                else if(td.querySelector('.dot-no')) td.innerText = 'F';
+            });
+            XLSX.writeFile(XLSX.utils.table_to_book(c), "Reporte_Asistencia.xlsx");
+        }
     </script>
 </body>
 </html>
