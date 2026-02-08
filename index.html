@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dr. Peinado - Control de Asistencia (Hora Local)</title>
+    <title>Dr. Peinado - Asistencia con Fecha Visible</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -28,20 +28,23 @@
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; }
         .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
         
-        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; position: relative; }
+        /* Reloj y Fecha */
+        .live-clock { background: #fdfdfd; border: 1px solid var(--primary); padding: 10px; border-radius: 12px; margin-bottom: 15px; color: var(--primary); font-weight: bold; font-size: 18px; text-align: center; }
+        .session-info { font-size: 12px; color: var(--secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* TABLA */
+        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; }
         table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
-        
         th.date-header { background: #f8f8f8; padding: 12px; font-size: 10px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; position: sticky; top: 0; z-index: 10; cursor: pointer; }
         td { padding: 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0; text-align: center; }
-        
         .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white !important; position: sticky; left: 0; z-index: 5; border-right: 2px solid #ddd !important; }
-        .cell-clickable { cursor: pointer; }
-        .dot { height: 16px; width: 16px; border-radius: 50%; display: inline-block; pointer-events: none; }
+        
+        .dot { height: 16px; width: 16px; border-radius: 50%; display: inline-block; }
         .dot-si { background-color: var(--success); }
         .dot-no { background-color: var(--danger); }
 
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; margin: 0 auto; }
-        .menu-item { padding: 20px 10px; background: white; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .menu-item { padding: 20px 10px; background: white; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
         .menu-item span { font-size: 28px; margin-bottom: 8px; }
 
         .nav-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
@@ -52,7 +55,7 @@
 
     <div id="status-bar">
         <div id="dot" class="status-dot" style="background: gray;"></div>
-        <span id="status-text">Cargando...</span>
+        <span id="status-text">Sincronizando...</span>
     </div>
 
     <div id="home" class="screen active">
@@ -65,44 +68,28 @@
         </div>
     </div>
 
-    <div id="escuelas" class="screen">
-        <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
-        <div class="card">
-            <h3>Nueva Escuela</h3>
-            <input type="text" id="nombreEscuela" placeholder="Nombre completo">
-            <input type="text" id="apodoEscuela" placeholder="Siglas">
-            <button class="btn" style="background:var(--primary)" onclick="guardarEscuela()">Guardar</button>
-        </div>
-        <div class="card"><div id="listaEscuelas"></div></div>
-    </div>
-
-    <div id="grupos" class="screen">
-        <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
-        <div class="card">
-            <h3>Nuevo Grupo</h3>
-            <select id="selectEscuelaGrupo"></select>
-            <input type="text" id="nombreGrupo" placeholder="Nombre del Grupo">
-            <button class="btn" style="background:var(--success)" onclick="guardarGrupo()">Crear Grupo</button>
-        </div>
-        <input type="file" id="inputExcel" style="display:none" accept=".xlsx, .xls" onchange="leerExcel(event)">
-        <div class="card"><h3>Grupos Activos</h3><div id="listaGroups"></div></div>
-    </div>
-
     <div id="asistencia" class="screen">
         <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
+        
         <div id="asistencia-seleccion" class="card">
-            <h3>Pasar Lista</h3>
+            <h3>Nueva Lista</h3>
+            <div id="reloj-vivo" class="live-clock">Cargando fecha...</div>
+            
             <select id="asis-escuela" onchange="filtrarGrupos('asis-escuela', 'asis-grupo')"></select>
             <select id="asis-grupo"></select>
-            <button class="btn" style="background:var(--primary)" onclick="iniciarPasarLista()">Comenzar</button>
+            <button class="btn" style="background:var(--primary)" onclick="iniciarPasarLista()">Comenzar con esta fecha</button>
         </div>
+
         <div id="asistencia-flujo" class="card" style="display:none; text-align:center">
+            <div class="session-info" id="info-sesion-activa"></div>
             <div id="contador-alu" style="color: var(--secondary); font-size: 14px;"></div>
-            <div id="nombre-display" style="font-size:28px; font-weight:800; margin:30px 0; color:var(--primary); min-height: 80px; display: flex; align-items: center; justify-content: center;"></div>
+            <div id="nombre-display" style="font-size:28px; font-weight:800; margin:25px 0; color:var(--primary); min-height: 80px; display: flex; align-items: center; justify-content: center;"></div>
+            
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
                 <button class="btn" style="background:var(--danger); padding:25px" onclick="registrarAsis(false)">FALTA</button>
                 <button class="btn" style="background:var(--success); padding:25px" onclick="registrarAsis(true)">PRESENTE</button>
             </div>
+            
             <div class="nav-controls">
                 <button class="btn-nav" onclick="cambiarAlumno(-1)">❮ Anterior</button>
                 <button class="btn-nav" onclick="cambiarAlumno(1)">Siguiente ❯</button>
@@ -133,6 +120,9 @@
         </div>
     </div>
 
+    <div id="escuelas" class="screen"><button class="back-btn" onclick="navegar('home')">❮ Inicio</button><div class="card"><h3>Nueva Escuela</h3><input type="text" id="nombreEscuela" placeholder="Nombre completo"><input type="text" id="apodoEscuela" placeholder="Siglas"><button class="btn" style="background:var(--primary)" onclick="guardarEscuela()">Guardar</button></div><div class="card"><div id="listaEscuelas"></div></div></div>
+    <div id="grupos" class="screen"><button class="back-btn" onclick="navegar('home')">❮ Inicio</button><div class="card"><h3>Nuevo Grupo</h3><select id="selectEscuelaGrupo"></select><input type="text" id="nombreGrupo" placeholder="Nombre del Grupo"><button class="btn" style="background:var(--success)" onclick="guardarGrupo()">Crear Grupo</button></div><input type="file" id="inputExcel" style="display:none" accept=".xlsx, .xls" onchange="leerExcel(event)"><div class="card"><h3>Grupos Activos</h3><div id="listaGroups"></div></div></div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
@@ -152,61 +142,39 @@
         let grupoIdGlobal = "";
         let sessionIdActual = "";
 
-        // FUNCIÓN CLAVE: Obtener fecha local YYYY-MM-DD
-        function getFechaLocal() {
-            const d = new Date();
-            const offset = d.getTimezoneOffset() * 60000;
-            return new Date(d.getTime() - offset).toISOString().split('T')[0];
-        }
-
-        function navegar(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            if (id === 'home') resetearApp();
-            if (id === 'reportes') {
-                const hoy = getFechaLocal();
-                document.getElementById('fecha-fin').value = hoy;
-                const haceMes = new Date(); haceMes.setDate(haceMes.getDate() - 30);
-                document.getElementById('fecha-inicio').value = haceMes.toISOString().split('T')[0];
-            }
-            document.getElementById(id).classList.add('active');
-        }
-
-        function resetearApp() {
-            indexAlu = 0;
-            document.getElementById('asistencia-seleccion').style.display='block';
-            document.getElementById('asistencia-flujo').style.display='none';
-        }
+        // RELOJ EN TIEMPO REAL
+        setInterval(() => {
+            const ahora = new Date();
+            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const reloj = document.getElementById('reloj-vivo');
+            if(reloj) reloj.innerText = ahora.toLocaleDateString('es-MX', opciones);
+        }, 1000);
 
         function iniciarPasarLista() {
             grupoIdGlobal = document.getElementById('asis-grupo').value;
-            if(!grupoIdGlobal) return;
-            
-            const ahora = new Date();
-            // Creamos un ID basado en la hora local: AAAA-MM-DD_HHMM
-            const anio = ahora.getFullYear();
-            const mes = (ahora.getMonth()+1).toString().padStart(2,'0');
-            const dia = ahora.getDate().toString().padStart(2,'0');
-            const hora = ahora.getHours().toString().padStart(2,'0');
-            const min = ahora.getMinutes().toString().padStart(2,'0');
+            if(!grupoIdGlobal) return alert("Selecciona un grupo");
+
+            // GENERAMOS EL ID DE SESIÓN BASADO EN LA HORA QUE EL USUARIO ESTÁ VIENDO
+            const d = new Date();
+            const anio = d.getFullYear();
+            const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+            const dia = d.getDate().toString().padStart(2, '0');
+            const hora = d.getHours().toString().padStart(2, '0');
+            const min = d.getMinutes().toString().padStart(2, '0');
             
             sessionIdActual = `${anio}-${mes}-${dia}_${hora}${min}`;
+            const fechaVisible = `${dia}/${mes}/${anio} ${hora}:${min}`;
 
             db.ref('alumnos/'+grupoIdGlobal).once('value', snap => {
                 const d = snap.val(); if(!d) return alert("Sin alumnos");
                 listaAlumnosActual = Object.keys(d).map(k => ({id: k, nombre: d[k].nombre}));
+                
                 document.getElementById('asistencia-seleccion').style.display='none';
                 document.getElementById('asistencia-flujo').style.display='block';
+                document.getElementById('info-sesion-activa').innerText = `LISTA DEL: ${fechaVisible}`;
+                
                 indexAlu = 0; mostrarProximoAlu();
             });
-        }
-
-        function mostrarProximoAlu() {
-            if(indexAlu < listaAlumnosActual.length && indexAlu >= 0) {
-                document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
-                document.getElementById('contador-alu').innerText = `Alumno ${indexAlu + 1} de ${listaAlumnosActual.length}`;
-            } else if (indexAlu >= listaAlumnosActual.length) {
-                alert("Sesión finalizada"); navegar('home');
-            }
         }
 
         function registrarAsis(st) {
@@ -214,6 +182,26 @@
                 nombre: listaAlumnosActual[indexAlu].nombre, presente: st
             });
             indexAlu++; mostrarProximoAlu();
+        }
+
+        function navegar(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            if (id === 'home') resetearApp();
+            if (id === 'reportes') {
+                const hoy = new Date();
+                const hoyStr = `${hoy.getFullYear()}-${(hoy.getMonth()+1).toString().padStart(2,'0')}-${hoy.getDate().toString().padStart(2,'0')}`;
+                document.getElementById('fecha-fin').value = hoyStr;
+            }
+            document.getElementById(id).classList.add('active');
+        }
+
+        function mostrarProximoAlu() {
+            if(indexAlu < listaAlumnosActual.length && indexAlu >= 0) {
+                document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
+                document.getElementById('contador-alu').innerText = `Alumno ${indexAlu + 1} de ${listaAlumnosActual.length}`;
+            } else if (indexAlu >= listaAlumnosActual.length) {
+                alert("Sesión finalizada correctamente."); navegar('home');
+            }
         }
 
         function cambiarAlumno(dir) {
@@ -254,7 +242,7 @@
                         sesiones.forEach(sId => {
                             const reg = d[sId] ? d[sId][aId] : null;
                             const status = reg ? reg.presente : null;
-                            bodyHtml += `<td class="cell-clickable" onclick="toggleAsistencia('${gId}','${sId}','${aId}',${status})">${status !== null ? `<span class="dot ${status?'dot-si':'dot-no'}"></span>` : '-'}</td>`;
+                            bodyHtml += `<td onclick="toggleAsistencia('${gId}','${sId}','${aId}',${status})">${status !== null ? `<span class="dot ${status?'dot-si':'dot-no'}"></span>` : '-'}</td>`;
                         });
                         bodyHtml += `</tr>`;
                     });
@@ -264,7 +252,7 @@
         }
 
         function eliminarSesion(gId, sId, fecha) {
-            if(confirm(`⚠️ ¿Borrar lista del ${fecha}?`)) db.ref(`asistencias/${gId}/${sId}`).remove();
+            if(confirm(`⚠️ ¿Deseas ELIMINAR toda la lista del ${fecha}?`)) db.ref(`asistencias/${gId}/${sId}`).remove();
         }
 
         function toggleAsistencia(gId, sId, aId, currentStatus) {
@@ -276,13 +264,19 @@
             const t = document.getElementById("tabla-datos");
             const clon = t.cloneNode(true);
             clon.querySelectorAll('td').forEach(td => {
-                if(td.querySelector('.dot-si')) td.innerText = 'A';
-                else if(td.querySelector('.dot-no')) td.innerText = 'F';
+                const si = td.querySelector('.dot-si'); const no = td.querySelector('.dot-no');
+                if(si) td.innerText = 'A'; else if(no) td.innerText = 'F';
             });
             XLSX.writeFile(XLSX.utils.table_to_book(clon), "Asistencia_DrPeinado.xlsx");
         }
 
-        // Carga inicial de datos
+        function resetearApp() {
+            indexAlu = 0;
+            document.getElementById('asistencia-seleccion').style.display='block';
+            document.getElementById('asistencia-flujo').style.display='none';
+        }
+
+        // CARGA DE DATOS FIREBASE
         db.ref('escuelas').on('value', snap => {
             const d = snap.val();
             const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
@@ -307,6 +301,21 @@
             Object.keys(todosGrupos).forEach(k => {
                 if(todosGrupos[k].escuelaId === escId) selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`;
             });
+        }
+        
+        function guardarEscuela() {
+            const n = document.getElementById('nombreEscuela').value;
+            const a = document.getElementById('apodoEscuela').value;
+            if(n && a) db.ref('escuelas').push({ nombre: n, apodo: a });
+        }
+
+        function guardarGrupo() {
+            const eId = document.getElementById('selectEscuelaGrupo').value;
+            const nG = document.getElementById('nombreGrupo').value;
+            if(eId && nG) {
+                const eTxt = document.getElementById('selectEscuelaGrupo').options[document.getElementById('selectEscuelaGrupo').selectedIndex].text;
+                db.ref('grupos').push({ escuelaId: eId, escuelaTxt: eTxt, nombreGrupo: nG });
+            }
         }
     </script>
 </body>
