@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dr. Peinado - Asistencia Pro</title>
+    <title>Dr. Peinado - Offline Pro</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -13,245 +13,251 @@
     
     <style>
         :root { --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF; --text: #1C1C1E; --secondary: #8E8E93; --danger: #FF3B30; --success: #34C759; --warning: #FF9500; }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
-        body { background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); overflow-x: hidden; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; touch-action: manipulation; -webkit-user-select: none; }
+        body { background-color: var(--bg); margin: 0; padding: 15px; color: var(--text); overflow-x: hidden; padding-top: 50px; }
         .screen { display: none; width: 100%; max-width: 900px; margin: auto; animation: fadeIn 0.2s; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        #status-bar { position: fixed; top: 10px; right: 15px; font-size: 11px; font-weight: bold; z-index: 1000; display: flex; align-items: center; background: rgba(255,255,255,0.9); padding: 5px 12px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; }
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; margin-right: 7px; transition: background 0.3s; }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin: 40px auto; padding: 10px; }
-        .menu-item { aspect-ratio: 1 / 1; background: white; border-radius: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.08); color: var(--text); }
-        .menu-item span { font-size: 55px; margin-bottom: 12px; display: block; }
+        
+        #status-bar { position: fixed; top: 10px; left: 15px; right: 15px; font-size: 11px; font-weight: bold; z-index: 1000; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.9); padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px auto; }
+        .menu-item { aspect-ratio: 1/1; background: white; border-radius: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+        .menu-item span { font-size: 45px; margin-bottom: 10px; }
+        
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; background: white; -webkit-user-select: text; }
-        .back-btn { background: none; color: var(--primary); border: none; padding: 10px; font-size: 18px; cursor: pointer; font-weight: bold; }
-        .live-clock { background: #f0f7ff; border: 1.5px solid var(--primary); padding: 15px; border-radius: 15px; margin-bottom: 15px; color: var(--primary); font-weight: 800; font-size: 18px; text-align: center; }
-        .item-list { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
-        .item-actions { display: flex; gap: 8px; }
-        .icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; }
-        .table-container { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #ddd; max-height: 55vh; }
-        table { border-collapse: separate; border-spacing: 0; background: white; min-width: 100%; }
-        .name-col { text-align: left; font-weight: bold; min-width: 150px; background: white !important; position: sticky; left: 0; z-index: 5; border-right: 2px solid #ddd !important; }
-        .dot { height: 16px; width: 16px; border-radius: 50%; display: inline-block; }
-        .dot-si { background-color: var(--success); }
-        .dot-no { background-color: var(--danger); }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; }
+        .item-list { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        .live-clock { background: #f0f7ff; border: 1.5px solid var(--primary); padding: 15px; border-radius: 15px; margin-bottom: 15px; color: var(--primary); font-weight: 800; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="status-bar">
-        <div id="status-dot-ui" class="status-dot" style="background: gray;"></div>
-        <span id="status-text-ui">Cargando...</span>
+        <span><span id="dot" class="status-dot" style="background:gray"></span> <span id="st-text">Iniciando...</span></span>
+        <button onclick="descargarCopiaSeguridad()" style="font-size: 10px; border-radius: 10px; border: 1px solid #ccc; padding: 2px 8px; background: white;">📥 Respaldar en iPad</button>
     </div>
 
     <div id="home" class="screen active">
-        <h1 style="text-align:center; margin-top: 60px; font-size: 28px; font-weight: 800; color: var(--primary);">Dr. Peinado</h1>
+        <h1 style="text-align:center; color: var(--primary);">Dr. Peinado</h1>
         <div class="menu-grid">
             <button class="menu-item" onclick="navegar('escuelas')"><span>🏫</span>Escuelas</button>
             <button class="menu-item" onclick="navegar('grupos')"><span>👥</span>Grupos</button>
             <button class="menu-item" onclick="navegar('asistencia')"><span>⏱️</span>Lista</button>
             <button class="menu-item" onclick="navegar('reportes')"><span>📊</span>Reporte</button>
         </div>
-        <button class="btn" style="background:#5856D6" onclick="location.reload()">🔄 Forzar Recarga</button>
+        <div class="card" style="text-align: center; font-size: 12px; color: var(--secondary);">
+            Copia local: <span id="last-sync">Nunca</span>
+        </div>
     </div>
 
     <div id="escuelas" class="screen">
-        <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
+        <button onclick="navegar('home')">❮ Volver</button>
         <div class="card">
-            <h3>Escuelas</h3>
-            <input type="text" id="nombreEscuela" placeholder="Nombre de la Escuela">
-            <input type="text" id="apodoEscuela" placeholder="Siglas">
+            <h3>Nueva Escuela</h3>
+            <input type="text" id="nE" placeholder="Nombre">
+            <input type="text" id="aE" placeholder="Siglas">
             <button class="btn" style="background:var(--primary)" onclick="guardarEscuela()">Guardar</button>
-            <div id="listaEscuelas"></div>
+            <div id="listE"></div>
         </div>
     </div>
 
     <div id="grupos" class="screen">
-        <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
+        <button onclick="navegar('home')">❮ Volver</button>
         <div class="card">
-            <h3>Grupos</h3>
-            <select id="selectEscuelaGrupo"></select>
-            <input type="text" id="nombreGrupo" placeholder="Nombre del Grupo">
-            <button class="btn" style="background:var(--success)" onclick="guardarGrupo()">Crear Grupo</button>
-            <div id="listaGroups"></div>
-            <hr><h4 style="color:var(--secondary)">📁 Archivados</h4>
-            <div id="listaArchivados"></div>
+            <h3>Nuevo Grupo</h3>
+            <select id="selE"></select>
+            <input type="text" id="nG" placeholder="Nombre Grupo">
+            <button class="btn" style="background:var(--success)" onclick="guardarGrupo()">Crear</button>
+            <div id="listG"></div>
         </div>
-        <input type="file" id="inputExcel" style="display:none" accept=".xlsx, .xls" onchange="leerExcel(event)">
+        <input type="file" id="fEx" style="display:none" onchange="leerExcel(event)">
     </div>
 
     <div id="asistencia" class="screen">
-        <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
-        <div id="asistencia-seleccion" class="card">
-            <div id="reloj-vivo" class="live-clock">--:--:--</div>
-            <select id="asis-escuela" onchange="filtrarGrupos('asis-escuela', 'asis-grupo')"></select>
-            <select id="asis-grupo"></select>
-            <button class="btn" style="background:var(--primary)" onclick="iniciarPasarLista()">Comenzar Lista</button>
+        <button onclick="navegar('home')">❮ Volver</button>
+        <div id="asis-sel" class="card">
+            <div id="clock" class="live-clock">--:--:--</div>
+            <select id="asE" onchange="filtroG('asE', 'asG')"></select>
+            <select id="asG"></select>
+            <button class="btn" style="background:var(--primary)" onclick="iniciarLista()">Comenzar</button>
         </div>
-        <div id="asistencia-flujo" class="card" style="display:none; text-align:center">
-            <div id="contador-alu" style="font-size: 14px; color:var(--secondary)"></div>
-            <div id="nombre-display" style="font-size:32px; font-weight:800; margin:25px 0; color:var(--primary); min-height: 100px; display:flex; align-items:center; justify-content:center;"></div>
+        <div id="asis-run" class="card" style="display:none; text-align:center">
+            <div id="cnt" style="color:var(--secondary)"></div>
+            <div id="name-display" style="font-size:30px; font-weight:800; margin:30px 0; min-height:80px; display:flex; align-items:center; justify-content:center;"></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-                <button class="btn" style="background:var(--danger); padding:40px; font-size:24px" onclick="registrarAsis(false)">FALTA</button>
-                <button class="btn" style="background:var(--success); padding:40px; font-size:24px" onclick="registrarAsis(true)">PRESENTE</button>
+                <button class="btn" style="background:var(--danger); padding:35px;" onclick="votar(false)">FALTA</button>
+                <button class="btn" style="background:var(--success); padding:35px;" onclick="votar(true)">PRESENTE</button>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px">
-                <button class="btn" style="background:#E5E5EA; color:black;" onclick="cambiarAlumno(-1)">❮ Ant.</button>
-                <button class="btn" style="background:#E5E5EA; color:black;" onclick="cambiarAlumno(1)">Sig. ❯</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="reportes" class="screen">
-        <button class="back-btn" onclick="navegar('home')">❮ Inicio</button>
-        <div class="card">
-            <select id="rep-escuela" onchange="filtrarGrupos('rep-escuela', 'rep-grupo')"></select>
-            <select id="rep-grupo"></select>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                <input type="date" id="fecha-inicio">
-                <input type="date" id="fecha-fin">
-            </div>
-            <button class="btn" style="background:var(--primary)" onclick="consultarReporte()">🔍 Ver Reporte</button>
-            <div id="reporte-tabla-cont" style="display:none">
-                <div class="table-container">
-                    <table id="tabla-datos"><thead id="head-reporte"></thead><tbody id="body-reporte"></tbody></table>
-                </div>
-                <button class="btn" style="background:var(--warning)" onclick="exportarExcelAF()">Exportar Excel 📥</button>
-            </div>
+            <button class="btn" style="background:#ddd; color:black; margin-top:20px" onclick="cambiarAlu(-1)">❮ Anterior</button>
         </div>
     </div>
 
     <script>
-        const firebaseConfig = {
+        const config = {
             apiKey: "AIzaSyA9uPSxhyy7JJ_05gc00PNcyN31Z3bbzPo",
-            authDomain: "listasasistencia-3a3ca.firebaseapp.com",
             databaseURL: "https://listasasistencia-3a3ca-default-rtdb.firebaseio.com",
             projectId: "listasasistencia-3a3ca",
-            storageBucket: "listasasistencia-3a3ca.firebasestorage.app",
-            messagingSenderId: "892289957745",
-            appId: "1:892289957745:web:3a1b93b635bcc9db08c0d0"
         };
-
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(config);
         const db = firebase.database();
 
-        // ESTADO DE CONEXIÓN
-        db.ref(".info/connected").on("value", (snap) => {
-            const dot = document.getElementById('status-dot-ui');
-            const txt = document.getElementById('status-text-ui');
-            if (snap.val() === true) { dot.style.background = "var(--success)"; txt.innerText = "Sincronizado"; }
-            else { dot.style.background = "var(--warning)"; txt.innerText = "Modo Local (Sin Internet)"; }
-        });
+        // VARIABLES DE MEMORIA LOCAL (EL ESPEJO)
+        let LOCAL_DATA = JSON.parse(localStorage.getItem('asistencia_backup')) || { escuelas: {}, grupos: {}, alumnos: {} };
+        let indexAlu = 0; let listaActual = []; let gIdGlobal = ""; let sIdGlobal = "";
 
-        let todosGrupos = {}; let listaAlumnosActual = []; let indexAlu = 0; let grupoIdGlobal = ""; let sessionIdActual = "";
-
-        // CARGA DE DATOS INICIAL (ESCUELAS Y GRUPOS)
-        db.ref('escuelas').on('value', snap => {
-            const d = snap.val();
-            const listUi = document.getElementById('listaEscuelas');
-            const sels = [document.getElementById('selectEscuelaGrupo'), document.getElementById('asis-escuela'), document.getElementById('rep-escuela')];
-            sels.forEach(s => { if(s) s.innerHTML = '<option value="">-- Escuela --</option>'; });
-            if(listUi) listUi.innerHTML = "";
-            if(d) Object.keys(d).forEach(k => {
-                sels.forEach(s => { if(s) s.innerHTML += `<option value="${k}">${d[k].apodo}</option>`; });
-                if(listUi) listUi.innerHTML += `<div class="item-list"><span><strong>${d[k].apodo}</strong></span><button class="icon-btn" onclick="db.ref('escuelas/${k}').remove()">🗑️</button></div>`;
-            });
-        });
-
-        db.ref('grupos').on('value', snap => {
-            todosGrupos = snap.val() || {};
-            const listUi = document.getElementById('listaGroups');
-            const listArch = document.getElementById('listaArchivados');
-            if(listUi) listUi.innerHTML = ""; if(listArch) listArch.innerHTML = "";
-            Object.keys(todosGrupos).forEach(k => {
-                const g = todosGrupos[k];
-                const html = `<div class="item-list"><span>${g.nombreGrupo}</span><div class="item-actions">
-                    ${g.estado !== 'archivado' ? `<button class="icon-btn" onclick="prepararImportar('${k}')">📥</button><button class="icon-btn" onclick="db.ref('grupos/${k}').update({estado:'archivado'})">📁</button>` : `<button class="icon-btn" onclick="db.ref('grupos/${k}').update({estado:'activo'})">📤</button>`}
-                    <button class="icon-btn" onclick="if(confirm('¿Borrar?')) db.ref('grupos/${k}').remove()">🗑️</button></div></div>`;
-                if(g.estado === 'archivado') { if(listArch) listArch.innerHTML += html; } else { if(listUi) listUi.innerHTML += html; }
-            });
-        });
-
-        // FUNCIÓN CLAVE: INICIAR LISTA (CORREGIDA PARA OFFLINE)
-        function iniciarPasarLista() {
-            grupoIdGlobal = document.getElementById('asis-grupo').value;
-            if(!grupoIdGlobal) return alert("Selecciona un grupo primero");
+        // 1. SINCRONIZACIÓN: DESCARGAR TODO AL DISCO DEL IPAD
+        function descargarCopiaSeguridad() {
+            if(!navigator.onLine) return alert("Necesitas internet para hacer el respaldo.");
             
-            const d = new Date();
-            sessionIdActual = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}_${d.getHours().toString().padStart(2,'0')}${d.getMinutes().toString().padStart(2,'0')}`;
-
-            // Usamos 'on' con una sola ejecución para forzar lectura de caché local si no hay red
-            db.ref('alumnos/'+grupoIdGlobal).on('value', function(snap) {
-                const alus = snap.val();
-                if(!alus) {
-                    alert("No hay alumnos en este grupo. Importa un Excel primero.");
-                    return;
+            db.ref('/').once('value').then(snap => {
+                const data = snap.val();
+                if(data) {
+                    localStorage.setItem('asistencia_backup', JSON.stringify(data));
+                    localStorage.setItem('last_sync', new Date().toLocaleString());
+                    LOCAL_DATA = data;
+                    renderizarTodo();
+                    document.getElementById('last-sync').innerText = localStorage.getItem('last_sync');
+                    alert("¡Copia guardada en el iPad!");
                 }
-                // Convertimos a array y detenemos la escucha para que no se reinicie la lista si vuelve el internet
-                db.ref('alumnos/'+grupoIdGlobal).off('value'); 
-                
-                listaAlumnosActual = Object.keys(alus).map(k => ({id:k, nombre:alus[k].nombre}));
-                document.getElementById('asistencia-seleccion').style.display='none';
-                document.getElementById('asistencia-flujo').style.display='block';
-                indexAlu = 0; 
-                mostrarProximoAlu();
             });
         }
 
-        function mostrarProximoAlu() {
-            if(indexAlu < listaAlumnosActual.length) {
-                document.getElementById('nombre-display').innerText = listaAlumnosActual[indexAlu].nombre;
-                document.getElementById('contador-alu').innerText = `Alumno ${indexAlu + 1} de ${listaAlumnosActual.length}`;
+        // 2. DETECTAR CONEXIÓN Y CARGAR DATOS
+        db.ref(".info/connected").on("value", (snap) => {
+            const dot = document.getElementById('dot');
+            const txt = document.getElementById('st-text');
+            if (snap.val() === true) {
+                dot.style.background = "var(--success)";
+                txt.innerText = "En línea (Nube)";
+                descargarCopiaSeguridad(); // Auto-respaldo al conectar
             } else {
-                alert("¡Lista finalizada!");
+                dot.style.background = "var(--warning)";
+                txt.innerText = "Modo iPad (Offline)";
+            }
+            renderizarTodo();
+        });
+
+        // 3. RENDERIZAR USANDO LA MEJOR FUENTE DISPONIBLE
+        function renderizarTodo() {
+            const e = LOCAL_DATA.escuelas || {};
+            const g = LOCAL_DATA.grupos || {};
+            
+            // Llenar selectores
+            const sels = ['selE', 'asE'];
+            sels.forEach(sId => {
+                const s = document.getElementById(sId);
+                if(s) {
+                    s.innerHTML = '<option value="">-- Escuela --</option>';
+                    Object.keys(e).forEach(k => s.innerHTML += `<option value="${k}">${e[k].apodo}</option>`);
+                }
+            });
+
+            // Listas visuales
+            const listE = document.getElementById('listE');
+            if(listE) {
+                listE.innerHTML = "";
+                Object.keys(e).forEach(k => listE.innerHTML += `<div class="item-list"><span>${e[k].apodo}</span><button onclick="eliminar('escuelas','${k}')">🗑️</button></div>`);
+            }
+
+            const listG = document.getElementById('listG');
+            if(listG) {
+                listG.innerHTML = "";
+                Object.keys(g).forEach(k => listG.innerHTML += `<div class="item-list"><span>${g[k].nombreGrupo}</span><button onclick="eliminar('grupos','${k}')">🗑️</button></div>`);
+            }
+        }
+
+        // 4. FUNCIONES DE OPERACIÓN
+        function navegar(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'home') {
+                document.getElementById('last-sync').innerText = localStorage.getItem('last_sync') || "Nunca";
+                document.getElementById('asis-sel').style.display = 'block';
+                document.getElementById('asis-run').style.display = 'none';
+            }
+        }
+
+        function filtroG(idE, idG) {
+            const escId = document.getElementById(idE).value;
+            const selG = document.getElementById(idG);
+            selG.innerHTML = '<option value="">-- Grupo --</option>';
+            const gs = LOCAL_DATA.grupos || {};
+            Object.keys(gs).forEach(k => {
+                if(gs[k].escuelaId === escId) selG.innerHTML += `<option value="${k}">${gs[k].nombreGrupo}</option>`;
+            });
+        }
+
+        function iniciarLista() {
+            gIdGlobal = document.getElementById('asG').value;
+            if(!gIdGlobal) return alert("Elige grupo");
+            
+            // CARGAR ALUMNOS DESDE LA COPIA DEL IPAD
+            const todosAlu = LOCAL_DATA.alumnos || {};
+            const misAlu = todosAlu[gIdGlobal] || {};
+            
+            listaActual = Object.keys(misAlu).map(k => ({id:k, nombre:misAlu[k].nombre}));
+            
+            if(listaActual.length === 0) return alert("No hay alumnos en la copia local. Respalda con internet.");
+
+            const d = new Date();
+            sIdGlobal = `${d.getFullYear()}-${(d.getMonth()+1)}-${d.getDate()}_${d.getHours()}${d.getMinutes()}`;
+            
+            document.getElementById('asis-sel').style.display = 'none';
+            document.getElementById('asis-run').style.display = 'block';
+            indexAlu = 0;
+            mostrar();
+        }
+
+        function mostrar() {
+            if(indexAlu < listaActual.length) {
+                document.getElementById('name-display').innerText = listaActual[indexAlu].nombre;
+                document.getElementById('cnt').innerText = `${indexAlu + 1} / ${listaActual.length}`;
+            } else {
+                alert("Terminado. Los datos se subirán cuando haya internet.");
                 navegar('home');
             }
         }
 
-        function registrarAsis(st) {
-            db.ref(`asistencias/${grupoIdGlobal}/${sessionIdActual}/${listaAlumnosActual[indexAlu].id}`).set({ 
-                nombre: listaAlumnosActual[indexAlu].nombre, 
-                presente: st 
+        function votar(si) {
+            // Guardar en Firebase (si hay red sube, si no, Firebase lo encola)
+            db.ref(`asistencias/${gIdGlobal}/${sIdGlobal}/${listaActual[indexAlu].id}`).set({
+                nombre: listaActual[indexAlu].nombre,
+                presente: si
             });
-            indexAlu++; 
-            mostrarProximoAlu();
+            indexAlu++;
+            mostrar();
         }
 
-        // --- OTRAS FUNCIONES ---
-        function navegar(id) { 
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            if (id === 'home') resetearApp();
-            document.getElementById(id).classList.add('active'); 
+        function guardarEscuela() {
+            const n = document.getElementById('nE').value;
+            const a = document.getElementById('aE').value;
+            if(n && a) db.ref('escuelas').push({nombre:n, apodo:a}).then(() => descargarCopiaSeguridad());
         }
-        function guardarEscuela() { /* código ya incluido arriba */ }
-        function guardarGrupo() { /* código ya incluido arriba */ }
-        function filtrarGrupos(idEsc, idGrup) {
-            const escId = document.getElementById(idEsc).value; const selG = document.getElementById(idGrup);
-            selG.innerHTML = '<option value="">-- Grupo --</option>';
-            Object.keys(todosGrupos).forEach(k => { if(todosGrupos[k].escuelaId === escId && todosGrupos[k].estado !== 'archivado') selG.innerHTML += `<option value="${k}">${todosGrupos[k].nombreGrupo}</option>`; });
+
+        function guardarGrupo() {
+            const e = document.getElementById('selE').value;
+            const n = document.getElementById('nG').value;
+            if(e && n) db.ref('grupos').push({escuelaId:e, nombreGrupo:n, estado:'activo'}).then(() => descargarCopiaSeguridad());
         }
-        function prepararImportar(id) { grupoParaExcel = id; document.getElementById('inputExcel').click(); }
-        function leerExcel(e) {
-            const file = e.target.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                const workbook = XLSX.read(evt.target.result, {type: 'binary'});
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                data.forEach(row => { if(row[0]) db.ref('alumnos/'+grupoParaExcel).push({ nombre: row[0].toString().toUpperCase() }); });
-                alert("Importado correctamente.");
-            };
-            reader.readAsBinaryString(file);
-        }
-        function cambiarAlumno(dir) { let n = indexAlu + dir; if(n >= 0 && n < listaAlumnosActual.length) { indexAlu = n; mostrarProximoAlu(); } }
-        function resetearApp() { indexAlu = 0; document.getElementById('asistencia-seleccion').style.display='block'; document.getElementById('asistencia-flujo').style.display='none'; }
-        
+
+        function eliminar(path, id) { if(confirm("¿Borrar?")) db.ref(`${path}/${id}`).remove().then(() => descargarCopiaSeguridad()); }
+
+        function cambiarAlu(d) { let n = indexAlu + d; if(n >= 0 && n < listaActual.length) { indexAlu = n; mostrar(); } }
+
         setInterval(() => {
-            const r = document.getElementById('reloj-vivo');
-            if(r) r.innerText = new Date().toLocaleTimeString();
+            const c = document.getElementById('clock');
+            if(c) c.innerText = new Date().toLocaleTimeString();
         }, 1000);
+
+        // Bloqueo de zoom
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - (window.lastT || 0) < 300) e.preventDefault();
+            window.lastT = now;
+        }, false);
     </script>
 </body>
 </html>
